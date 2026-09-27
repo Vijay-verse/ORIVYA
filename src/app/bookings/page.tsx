@@ -47,7 +47,23 @@ export default function BookingsPage() {
     }
   };
 
-  const handleConfirmCancel = (bookingId: string) => {
+  const handleConfirmCancel = async (bookingId: string) => {
+    const targetBooking = bookings.find((b) => b.id === bookingId);
+    try {
+      if (targetBooking) {
+        await fetch(`/api/bookings/${bookingId}/cancel`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            totalAmount: targetBooking.totalAmount,
+            referenceNumber: targetBooking.referenceNumber,
+          }),
+        });
+      }
+    } catch (err) {
+      console.error("Server cancellation error:", err);
+    }
+
     const result = cancelBooking(bookingId);
     setRefundAlert(result);
     setCancellingBookingId(null);

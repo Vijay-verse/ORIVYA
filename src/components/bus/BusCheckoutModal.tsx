@@ -70,8 +70,27 @@ export const BusCheckoutModal: React.FC<BusCheckoutModalProps> = ({
   const [confirmedBooking, setConfirmedBooking] = useState<Booking | null>(null);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>("");
 
-  // Lock seats on mount
+  const [holdToken, setHoldToken] = useState<string>("");
+
+  // Lock seats on mount via server API
   useEffect(() => {
+    fetch("/api/bus/hold-seat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        busTripId: schedule.id,
+        seatNumbers: selectedSeats,
+        userId: user.id,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.holdToken) {
+          setHoldToken(data.holdToken);
+        }
+      })
+      .catch((e) => console.error("Seat hold API error:", e));
+
     holdSeats(schedule.id, selectedSeats);
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
@@ -117,9 +136,30 @@ export const BusCheckoutModal: React.FC<BusCheckoutModalProps> = ({
     setIsProcessing(true);
 
     try {
-      // Simulate realistic payment gateway processing
-      await new Promise((resolve) => setTimeout(resolve, 1400));
+      // 1. Submit to server-side booking API
+      const response = await fetch("/api/bus/book", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          schedule,
+          selectedSeats,
+          passengers,
+          boardingPoint,
+          droppingPoint,
+          paymentMethod,
+          holdToken,
+          userId: user.id,
+          contactEmail: user.email,
+          contactPhone: user.phone,
+        }),
+      });
 
+      const serverRes = await response.json();
+      if (!serverRes.success) {
+        throw new Error(serverRes.error || "Server failed to verify payment");
+      }
+
+      // 2. Sync to local/session trip store
       const booking = await createBusBooking({
         schedule,
         selectedSeats,
@@ -130,7 +170,7 @@ export const BusCheckoutModal: React.FC<BusCheckoutModalProps> = ({
         tripTitle: `${schedule.toCity} Vacation`,
       });
 
-      // Generate live QR code for ticket verification
+      // 3. Generate live QR code for ticket verification
       const qrData = JSON.stringify({
         ref: booking.referenceNumber,
         operator: schedule.operator.name,
