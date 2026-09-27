@@ -5,6 +5,7 @@ import { Booking, Trip, TripItem, BusSchedule, BusPoint, Passenger, BusSeat } fr
 import { INITIAL_SEED_TRIP, INITIAL_SEED_BOOKINGS } from "./data/mockTrips";
 import { MOCK_BUS_SCHEDULES, generateBusSeats } from "./data/mockBuses";
 import { TripEngine } from "@/services/tripEngine";
+import { AuditService } from "@/services/auditService";
 
 interface UserProfile {
   id: string;
@@ -100,6 +101,14 @@ export const TravelStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
       ...prev,
       [scheduleId]: { seatNumbers, expiresAt },
     }));
+    AuditService.logEvent({
+      actorId: user.id,
+      actorRole: "user",
+      action: "SEAT_LOCKED",
+      entityType: "seat",
+      entityId: scheduleId,
+      metadata: { seatNumbers, ttlMinutes: 5 },
+    });
     return true;
   };
 
@@ -219,6 +228,20 @@ export const TravelStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
     saveBookings([newBooking, ...bookings]);
     releaseHeldSeats(params.schedule.id);
 
+    AuditService.logEvent({
+      actorId: user.id,
+      actorRole: "user",
+      action: "BOOKING_CREATED",
+      entityType: "booking",
+      entityId: newBooking.referenceNumber,
+      metadata: {
+        type: "bus",
+        amount: total,
+        seats: params.selectedSeats,
+        destination: params.schedule.toCity,
+      },
+    });
+
     return newBooking;
   };
 
@@ -283,6 +306,19 @@ export const TravelStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
     saveTrips(updatedTrips);
     saveBookings([linkedBooking, ...bookings]);
 
+    AuditService.logEvent({
+      actorId: user.id,
+      actorRole: "user",
+      action: "BOOKING_CREATED",
+      entityType: "booking",
+      entityId: linkedBooking.referenceNumber,
+      metadata: {
+        type: linkedBooking.bookingType,
+        destination: resolvedDest,
+        amount: linkedBooking.totalAmount,
+      },
+    });
+
     return linkedBooking;
   };
 
@@ -317,6 +353,31 @@ export const TravelStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
       ),
     }));
     saveTrips(updatedTrips);
+
+    AuditService.logEvent({
+      actorId: user.id,
+      actorRole: "user",
+      action: "BOOKING_CANCELLED",
+      entityType: "booking",
+      entityId: booking.referenceNumber,
+      metadata: {
+        bookingType: booking.bookingType,
+        refundAmount,
+        cancellationFee,
+      },
+    });
+
+    AuditService.logEvent({
+      actorId: "system",
+      actorRole: "system",
+      action: "REFUND_COMPLETED",
+      entityType: "refund",
+      entityId: `REF-${booking.referenceNumber}`,
+      metadata: {
+        refundAmount,
+        originalBookingRef: booking.referenceNumber,
+      },
+    });
 
     return {
       success: true,

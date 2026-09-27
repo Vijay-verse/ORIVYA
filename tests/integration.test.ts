@@ -5,6 +5,7 @@ import { HotelService } from "../src/services/hotelService";
 import { TrainService } from "../src/services/trainService";
 import { CabService } from "../src/services/cabService";
 import { NotificationService } from "../src/services/notificationService";
+import { AuditService } from "../src/services/auditService";
 
 describe("CouponService Integration Tests", () => {
   test("validates flat discount coupon ORIVYA100 when order exceeds threshold", () => {
@@ -153,5 +154,26 @@ describe("NotificationService Integration Tests", () => {
 
     const twoHoursAgoIso = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
     assert.strictEqual(NotificationService.formatRelativeTime(twoHoursAgoIso), "2h ago");
+  });
+});
+
+describe("AuditService & Master Reference Tests", () => {
+  test("creates immutable audit log entries with metadata", () => {
+    const entry = AuditService.logEvent({
+      actorId: "admin-tester",
+      actorRole: "admin",
+      action: "INVENTORY_TOGGLED",
+      entityType: "inventory",
+      entityId: "bus-schedule-test",
+      metadata: { status: "ACTIVE", updatedBy: "Jest" },
+    });
+
+    assert.ok(entry.id.startsWith("audit-"));
+    assert.strictEqual(entry.action, "INVENTORY_TOGGLED");
+    assert.strictEqual(entry.metadata?.status, "ACTIVE");
+
+    const logs = AuditService.getLogs();
+    assert.ok(logs.length >= 1);
+    assert.strictEqual(logs[0].id, entry.id);
   });
 });
