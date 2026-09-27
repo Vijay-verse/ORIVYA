@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/lib/auth/AuthContext";
 import { TravelStoreProvider } from "@/lib/store";
 import { Navbar } from "@/components/navbar/Navbar";
 import { Footer } from "@/components/footer/Footer";
@@ -29,11 +30,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-[#FBFBFD] text-slate-900 selection:bg-indigo-500 selection:text-white">
-        <TravelStoreProvider>
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </TravelStoreProvider>
+        <AuthProvider>
+          <TravelStoreProvider>
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </TravelStoreProvider>
+        </AuthProvider>
       </body>
     </html>
   );

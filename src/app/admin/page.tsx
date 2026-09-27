@@ -19,10 +19,12 @@ import {
   ArrowUpRight
 } from "lucide-react";
 import { useTravelStore } from "@/lib/store";
+import { useAuth } from "@/lib/auth/AuthContext";
 import { formatCurrency } from "@/lib/utils";
 
 export default function AdminDashboardPage() {
   const { bookings, trips } = useTravelStore();
+  const { role, switchDemoRole } = useAuth();
 
   const totalRevenue = 842500;
   const totalBookingsCount = 1284 + bookings.length;
@@ -35,6 +37,40 @@ export default function AdminDashboardPage() {
     { name: "Hotel & Resorts", share: "22%", count: 282, color: "bg-amber-600", icon: Hotel },
     { name: "Local & Outstation Cabs", share: "11%", count: 142, color: "bg-emerald-600", icon: Car },
   ];
+
+  if (role !== "admin") {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-3xl p-8 border border-slate-200 shadow-xl text-center space-y-5">
+          <div className="h-14 w-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
+            <ShieldCheck className="h-7 w-7" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-slate-900">Admin Authorization Required</h2>
+            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+              This operations hub is restricted to authorized ORIVYA administrators. Your current session is set to <strong>{role}</strong>.
+            </p>
+          </div>
+
+          <div className="pt-2 flex flex-col gap-2.5">
+            <button
+              type="button"
+              onClick={() => switchDemoRole("admin")}
+              className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/20 transition-all"
+            >
+              SWITCH TO ADMIN ROLE (DEMO)
+            </button>
+            <Link
+              href="/"
+              className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors"
+            >
+              Return to Homepage
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50/70 pb-24">
