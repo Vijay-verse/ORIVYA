@@ -16,16 +16,24 @@ import {
   Ticket
 } from "lucide-react";
 import { MOCK_TRAIN_SCHEDULES } from "@/lib/data/mockTrains";
-import { TrainSchedule } from "@/types";
+import { TrainSchedule, TrainClassOption } from "@/types";
 import { formatCurrency } from "@/lib/utils";
+import { TrainCheckoutModal } from "@/components/train/TrainCheckoutModal";
+import { TrainService } from "@/services/trainService";
+import { useTravelStore } from "@/lib/store";
 
 function TrainSearchContent() {
+  const { bookings } = useTravelStore();
   const searchParams = useSearchParams();
   const [fromStation, setFromStation] = useState(searchParams.get("from") || "Pune");
   const [toStation, setToStation] = useState(searchParams.get("to") || "Hyderabad");
   const [date, setDate] = useState(searchParams.get("date") || "2026-10-03");
 
   const [selectedTrainForRoute, setSelectedTrainForRoute] = useState<TrainSchedule | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<{
+    train: TrainSchedule;
+    cls: TrainClassOption;
+  } | null>(null);
   const [pnrInput, setPnrInput] = useState("");
   const [pnrResult, setPnrResult] = useState<string | null>(null);
 
@@ -38,8 +46,25 @@ function TrainSearchContent() {
 
   const checkPnr = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!pnrInput) return;
-    setPnrResult(`PNR ${pnrInput}: Confirmed • Coach B2 Berth 34 (Side Lower) • Chart Prepared`);
+    if (!pnrInput.trim()) return;
+
+    // Check user bookings first
+    const userTrainBooking = bookings.find(
+      (b) => b.bookingType === "train" && b.details.pnrNumber === pnrInput.trim()
+    );
+
+    if (userTrainBooking && userTrainBooking.details.trainSchedule) {
+      const ts = userTrainBooking.details.trainSchedule;
+      setPnrResult(
+        `PNR ${pnrInput.trim()}: Confirmed • ${ts.trainName} (#${ts.trainNumber}) • Coach B2 Berth 34 • Chart Prepared • Passenger: ${userTrainBooking.passengers[0]?.fullName || "Primary Guest"}`
+      );
+      return;
+    }
+
+    const pnrStatus = TrainService.checkPnrStatus(pnrInput.trim());
+    setPnrResult(
+      `PNR ${pnrStatus.pnr}: ${pnrStatus.status} • ${pnrStatus.trainName} (#${pnrStatus.trainNumber}) • Coach ${pnrStatus.coach} Berth ${pnrStatus.berth} • Chart ${pnrStatus.chartStatus}`
+    );
   };
 
   return (
@@ -164,12 +189,8 @@ function TrainSearchContent() {
                         </span>
                         <button
                           type="button"
-                          onClick={() =>
-                            alert(
-                              `Simulated Train Booking for ${train.trainName} (${cls.classCode}). Class reserved.`
-                            )
-                          }
-                          className="px-2 py-0.5 rounded bg-violet-600 hover:bg-violet-700 text-white text-[10px]"
+                          onClick={() => setSelectedBooking({ train, cls })}
+                          className="px-2.5 py-1 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-[10px] font-bold shadow-xs transition-colors"
                         >
                           Book
                         </button>
@@ -286,6 +307,15 @@ function TrainSearchContent() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* TRAIN CHECKOUT MODAL */}
+      {selectedBooking && (
+        <TrainCheckoutModal
+          train={selectedBooking.train}
+          selectedClass={selectedBooking.cls}
+          onClose={() => setSelectedBooking(null)}
+        />
       )}
     </div>
   );

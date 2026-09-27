@@ -22,6 +22,7 @@ import {
 import { useTravelStore } from "@/lib/store";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { formatCurrency } from "@/lib/utils";
+import { NotificationDropdown } from "./NotificationDropdown";
 
 export const Navbar = () => {
   const pathname = usePathname();
@@ -107,6 +108,7 @@ export const Navbar = () => {
 
         {/* User / Action Profile */}
         <div className="hidden md:flex items-center gap-3">
+          <NotificationDropdown />
           {isAuthenticated && user ? (
             <>
               {/* Wallet pill */}
@@ -152,8 +154,9 @@ export const Navbar = () => {
           )}
         </div>
 
-        {/* Mobile Hamburger Button */}
+        {/* Mobile Header Buttons */}
         <div className="flex md:hidden items-center gap-2">
+          <NotificationDropdown />
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100"

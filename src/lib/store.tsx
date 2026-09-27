@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { Booking, Trip, TripItem, BusSchedule, BusPoint, Passenger, BusSeat } from "@/types";
 import { INITIAL_SEED_TRIP, INITIAL_SEED_BOOKINGS } from "./data/mockTrips";
 import { MOCK_BUS_SCHEDULES, generateBusSeats } from "./data/mockBuses";
+import { TripEngine } from "@/services/tripEngine";
 
 interface UserProfile {
   id: string;
@@ -31,6 +32,7 @@ interface TravelStoreContextType {
     tripTitle?: string;
     targetTripId?: string;
   }) => Promise<Booking>;
+  addBooking: (booking: Booking, destination?: string) => Booking;
   cancelBooking: (bookingId: string) => { success: boolean; refundAmount: number; message: string };
   getTrip: (tripId: string) => Trip | undefined;
   getBooking: (bookingIdOrRef: string) => Booking | undefined;
@@ -220,6 +222,70 @@ export const TravelStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
     return newBooking;
   };
 
+  const addBooking = (booking: Booking, destination?: string): Booking => {
+    // 1. Resolve destination
+    let resolvedDest = destination;
+    if (!resolvedDest) {
+      if (booking.details.busSchedule) resolvedDest = booking.details.busSchedule.toCity;
+      else if (booking.details.trainSchedule) resolvedDest = booking.details.trainSchedule.toCity;
+      else if (booking.details.hotel) resolvedDest = booking.details.hotel.city;
+      else if (booking.details.cab) {
+        resolvedDest = booking.details.dropLocation || booking.details.pickupLocation || "Goa";
+      } else {
+        resolvedDest = "Goa";
+      }
+    }
+
+    // 2. Find target trip or create one
+    let targetTrip = trips.find((t) => t.id === booking.tripId);
+    if (!targetTrip && resolvedDest) {
+      targetTrip = trips.find(
+        (t) =>
+          t.destination.toLowerCase().includes(resolvedDest!.toLowerCase()) ||
+          resolvedDest!.toLowerCase().includes(t.destination.toLowerCase())
+      );
+    }
+
+    if (!targetTrip) {
+      if (trips.length > 0) {
+        targetTrip = trips[0];
+      } else {
+        targetTrip = {
+          id: `trip-${Date.now()}`,
+          userId: user.id,
+          title: `${resolvedDest || "Travel"} Vacation & Journey`,
+          destination: resolvedDest || "Goa",
+          startDate: "2026-10-02",
+          endDate: "2026-10-06",
+          status: "upcoming",
+          createdAt: new Date().toISOString(),
+          items: [],
+        };
+      }
+    }
+
+    const linkedBooking: Booking = {
+      ...booking,
+      tripId: targetTrip.id,
+    };
+
+    // 3. Compile Trip Item
+    const tripItem = TripEngine.compileBookingToTripItem({
+      tripId: targetTrip.id,
+      booking: linkedBooking,
+    });
+
+    const updatedTripItems = TripEngine.sortChronologically([...targetTrip.items, tripItem]);
+    const updatedTrips = trips.some((t) => t.id === targetTrip!.id)
+      ? trips.map((t) => (t.id === targetTrip!.id ? { ...t, items: updatedTripItems } : t))
+      : [{ ...targetTrip, items: updatedTripItems }, ...trips];
+
+    saveTrips(updatedTrips);
+    saveBookings([linkedBooking, ...bookings]);
+
+    return linkedBooking;
+  };
+
   const cancelBooking = (bookingId: string) => {
     const booking = bookings.find((b) => b.id === bookingId);
     if (!booking) {
@@ -273,6 +339,7 @@ export const TravelStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
         holdSeats,
         releaseHeldSeats,
         createBusBooking,
+        addBooking,
         cancelBooking,
         getTrip,
         getBooking,

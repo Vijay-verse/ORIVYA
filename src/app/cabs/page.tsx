@@ -16,10 +16,17 @@ import {
   ArrowRight
 } from "lucide-react";
 import { MOCK_CAB_OPTIONS, MOCK_DRIVERS } from "@/lib/data/mockCabs";
-import { CabOption, CabDriver, CabRideStatus } from "@/types";
+import { CabOption, CabDriver, CabRideStatus, Booking } from "@/types";
 import { formatCurrency } from "@/lib/utils";
+import { useTravelStore } from "@/lib/store";
+import { useAuth } from "@/lib/auth/AuthContext";
+import Link from "next/link";
+import confetti from "canvas-confetti";
 
 function CabSearchContent() {
+  const { user } = useAuth();
+  const { addBooking } = useTravelStore();
+
   const searchParams = useSearchParams();
   const [pickup, setPickup] = useState(
     searchParams.get("pickup") || "Madgaon Railway Station"
@@ -34,6 +41,7 @@ function CabSearchContent() {
   const [rideStatus, setRideStatus] = useState<CabRideStatus | "idle">("idle");
   const [assignedDriver, setAssignedDriver] = useState<CabDriver | null>(null);
   const [liveDistanceKm, setLiveDistanceKm] = useState(2.8);
+  const [completedBooking, setCompletedBooking] = useState<Booking | null>(null);
 
   // Live simulation lifecycle
   useEffect(() => {
@@ -61,12 +69,51 @@ function CabSearchContent() {
       return () => clearInterval(distanceInterval);
     } else if (rideStatus === "in_trip") {
       timer = setTimeout(() => {
+        const bookingRef = `ORV-CAB-${Math.floor(100000 + Math.random() * 900000)}`;
+        const driver = assignedDriver || MOCK_DRIVERS[0];
+        const newBooking: Booking = {
+          id: `bk-cab-${Date.now()}`,
+          referenceNumber: bookingRef,
+          userId: user?.id || "user-default-01",
+          bookingType: "cab",
+          status: "CONFIRMED",
+          paymentStatus: "PAID",
+          baseAmount: selectedCab.estimatedPrice,
+          taxAmount: Math.round(selectedCab.estimatedPrice * 0.05),
+          convenienceFee: 29,
+          discountAmount: 0,
+          totalAmount: selectedCab.estimatedPrice + Math.round(selectedCab.estimatedPrice * 0.05) + 29,
+          paymentMethod: "UPI",
+          createdAt: new Date().toISOString(),
+          contactEmail: user?.email || "customer@example.com",
+          contactPhone: user?.phone || "+91 98765 43210",
+          passengers: [
+            {
+              id: "p1",
+              fullName: user?.name || "Vijay Sharma",
+              age: 28,
+              gender: "male",
+            },
+          ],
+          details: {
+            cab: selectedCab,
+            pickupLocation: pickup,
+            dropLocation: drop,
+            pickupTime: `${date} • ${time}`,
+            driver,
+            rideStatus: "completed",
+          },
+        };
+
+        addBooking(newBooking, "Goa");
+        setCompletedBooking(newBooking);
         setRideStatus("completed");
+        confetti({ particleCount: 75, spread: 65, origin: { y: 0.6 } });
       }, 5000);
     }
 
     return () => clearTimeout(timer);
-  }, [rideStatus]);
+  }, [rideStatus, assignedDriver, selectedCab, pickup, drop, date, time, user, addBooking]);
 
   const handleStartBooking = () => {
     setRideStatus("searching");
@@ -252,13 +299,46 @@ function CabSearchContent() {
               )}
 
               {rideStatus === "completed" && (
-                <button
-                  type="button"
-                  onClick={() => setRideStatus("idle")}
-                  className="w-full py-3 rounded-2xl bg-slate-900 text-white font-bold text-xs"
-                >
-                  Book Another Ride
-                </button>
+                <div className="space-y-3 pt-2">
+                  {completedBooking && (
+                    <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs space-y-1">
+                      <div className="flex justify-between font-bold text-emerald-900">
+                        <span>Ride Ref:</span>
+                        <span className="font-mono">{completedBooking.referenceNumber}</span>
+                      </div>
+                      <div className="flex justify-between text-emerald-800">
+                        <span>Paid via UPI:</span>
+                        <span className="font-extrabold">{formatCurrency(completedBooking.totalAmount)}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">
+                    <Link
+                      href="/trips"
+                      className="flex-1 py-3 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs text-center shadow-md shadow-emerald-600/20"
+                    >
+                      View in My Trips
+                    </Link>
+                    <Link
+                      href="/bookings"
+                      className="flex-1 py-3 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs text-center"
+                    >
+                      View Passes
+                    </Link>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRideStatus("idle");
+                      setCompletedBooking(null);
+                    }}
+                    className="w-full py-2.5 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800"
+                  >
+                    Book Another Ride
+                  </button>
+                </div>
               )}
             </div>
           </div>

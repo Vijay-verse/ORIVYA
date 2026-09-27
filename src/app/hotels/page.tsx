@@ -19,6 +19,7 @@ import {
 import { MOCK_HOTEL_PROPERTIES } from "@/lib/data/mockHotels";
 import { HotelProperty, HotelRoom } from "@/types";
 import { formatCurrency } from "@/lib/utils";
+import { HotelCheckoutModal } from "@/components/hotel/HotelCheckoutModal";
 
 function HotelSearchContent() {
   const searchParams = useSearchParams();
@@ -29,7 +30,7 @@ function HotelSearchContent() {
 
   const [selectedHotel, setSelectedHotel] = useState<HotelProperty | null>(null);
   const [selectedRoom, setSelectedRoom] = useState<HotelRoom | null>(null);
-  const [bookingConfirmed, setBookingConfirmed] = useState(false);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   // Calculate nights
   const nights = Math.max(
@@ -47,14 +48,8 @@ function HotelSearchContent() {
     setSelectedRoom(room);
   };
 
-  const handleConfirmReservation = () => {
-    setBookingConfirmed(true);
-    setTimeout(() => {
-      setBookingConfirmed(false);
-      setSelectedHotel(null);
-      setSelectedRoom(null);
-      alert("Hotel reservation confirmed and synced to your trip timeline!");
-    }, 1800);
+  const handleProceedToCheckout = () => {
+    setIsCheckingOut(true);
   };
 
   return (
@@ -188,7 +183,7 @@ function HotelSearchContent() {
       </div>
 
       {/* ROOM CUSTOMIZATION & RESERVATION MODAL */}
-      {selectedHotel && selectedRoom && (
+      {selectedHotel && selectedRoom && !isCheckingOut && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto">
           <div className="relative w-full max-w-2xl my-8 rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden space-y-6">
             <div className="bg-[#0B0F19] text-white p-5 flex items-center justify-between">
@@ -269,22 +264,32 @@ function HotelSearchContent() {
 
               <button
                 type="button"
-                disabled={bookingConfirmed}
-                onClick={handleConfirmReservation}
+                onClick={handleProceedToCheckout}
                 className="w-full py-3.5 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs shadow-lg shadow-amber-600/30 transition-all flex items-center justify-center gap-2"
               >
-                {bookingConfirmed ? (
-                  <span>Generating Voucher & Syncing Trip...</span>
-                ) : (
-                  <>
-                    <ShieldCheck className="h-4 w-4" />
-                    <span>CONFIRM & BOOK HOTEL ROOM</span>
-                  </>
-                )}
+                <ShieldCheck className="h-4 w-4" />
+                <span>PROCEED TO GUEST DETAILS & PAYMENT</span>
               </button>
             </div>
           </div>
         </div>
+      )}
+
+      {/* HOTEL CHECKOUT & VOUCHER MODAL */}
+      {isCheckingOut && selectedHotel && selectedRoom && (
+        <HotelCheckoutModal
+          hotel={selectedHotel}
+          room={selectedRoom}
+          checkIn={checkIn}
+          checkOut={checkOut}
+          nights={nights}
+          guestsCount={parseInt(guests, 10) || 2}
+          onClose={() => {
+            setIsCheckingOut(false);
+            setSelectedHotel(null);
+            setSelectedRoom(null);
+          }}
+        />
       )}
     </div>
   );
