@@ -16,27 +16,21 @@ import {
   ShieldCheck, 
   RefreshCw, 
   ChevronRight,
-  ArrowUpRight
+  ArrowUpRight,
+  Calendar,
+  Filter
 } from "lucide-react";
 import { useTravelStore } from "@/lib/store";
 import { useAuth } from "@/lib/auth/AuthContext";
+import { AdminService } from "@/services/adminService";
 import { formatCurrency } from "@/lib/utils";
 
 export default function AdminDashboardPage() {
   const { bookings, trips } = useTravelStore();
   const { role, switchDemoRole } = useAuth();
+  const [dateFilter, setDateFilter] = useState<"all" | "30days" | "7days" | "today">("all");
 
-  const totalRevenue = 842500;
-  const totalBookingsCount = 1284 + bookings.length;
-  const activeTripsCount = 327 + trips.length;
-  const activeUsersCount = 8492;
-
-  const servicesBreakdown = [
-    { name: "Bus Booking", share: "42%", count: 539, color: "bg-indigo-600", icon: Bus },
-    { name: "Train Reservation", share: "25%", count: 321, color: "bg-violet-600", icon: Train },
-    { name: "Hotel & Resorts", share: "22%", count: 282, color: "bg-amber-600", icon: Hotel },
-    { name: "Local & Outstation Cabs", share: "11%", count: 142, color: "bg-emerald-600", icon: Car },
-  ];
+  const metrics = AdminService.getMetrics(bookings, trips, dateFilter);
 
   if (role !== "admin") {
     return (
@@ -90,11 +84,31 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-mono">
-                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                Live Telemetry Active
+            {/* Date Range Selector */}
+            <div className="flex items-center gap-2 bg-slate-900/80 p-1.5 rounded-xl border border-slate-800 text-xs">
+              <span className="text-slate-400 pl-2 pr-1 font-semibold flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                Filter:
               </span>
+              {[
+                { label: "All Time", val: "all" },
+                { label: "30 Days", val: "30days" },
+                { label: "7 Days", val: "7days" },
+                { label: "Today", val: "today" },
+              ].map((tab) => (
+                <button
+                  key={tab.val}
+                  type="button"
+                  onClick={() => setDateFilter(tab.val as any)}
+                  className={`px-3 py-1 rounded-lg font-bold transition-all ${
+                    dateFilter === tab.val
+                      ? "bg-indigo-600 text-white shadow-xs"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
             </div>
           </div>
         </div>
@@ -108,10 +122,10 @@ export default function AdminDashboardPage() {
               <span className="text-xs font-bold uppercase tracking-wider">Gross Platform GMV</span>
               <DollarSign className="h-4 w-4 text-emerald-500" />
             </div>
-            <p className="text-3xl font-extrabold text-slate-900">{formatCurrency(totalRevenue)}</p>
+            <p className="text-3xl font-extrabold text-slate-900">{formatCurrency(metrics.totalGmv)}</p>
             <div className="flex items-center gap-1 text-xs text-emerald-600 font-semibold pt-1">
               <ArrowUpRight className="h-3.5 w-3.5" />
-              <span>+18.4% from last month</span>
+              <span>+18.4% from baseline</span>
             </div>
           </div>
 
@@ -120,10 +134,10 @@ export default function AdminDashboardPage() {
               <span className="text-xs font-bold uppercase tracking-wider">Total Bookings</span>
               <Ticket className="h-4 w-4 text-indigo-500" />
             </div>
-            <p className="text-3xl font-extrabold text-slate-900">{totalBookingsCount.toLocaleString()}</p>
+            <p className="text-3xl font-extrabold text-slate-900">{metrics.totalBookingsCount.toLocaleString()}</p>
             <div className="flex items-center gap-1 text-xs text-indigo-600 font-semibold pt-1">
               <TrendingUp className="h-3.5 w-3.5" />
-              <span>99.2% confirmation rate</span>
+              <span>{metrics.confirmationRatePercent}% confirmation rate</span>
             </div>
           </div>
 
@@ -132,7 +146,7 @@ export default function AdminDashboardPage() {
               <span className="text-xs font-bold uppercase tracking-wider">Active Unified Trips</span>
               <Briefcase className="h-4 w-4 text-violet-500" />
             </div>
-            <p className="text-3xl font-extrabold text-slate-900">{activeTripsCount}</p>
+            <p className="text-3xl font-extrabold text-slate-900">{metrics.activeTripsCount}</p>
             <span className="text-xs text-slate-400 block pt-1">Across 18 corridors</span>
           </div>
 
@@ -141,7 +155,7 @@ export default function AdminDashboardPage() {
               <span className="text-xs font-bold uppercase tracking-wider">Registered Travellers</span>
               <Users className="h-4 w-4 text-amber-500" />
             </div>
-            <p className="text-3xl font-extrabold text-slate-900">{activeUsersCount.toLocaleString()}</p>
+            <p className="text-3xl font-extrabold text-slate-900">{metrics.registeredUsersCount.toLocaleString()}</p>
             <span className="text-xs text-emerald-600 font-semibold block pt-1">
               +142 joined today
             </span>
@@ -158,21 +172,28 @@ export default function AdminDashboardPage() {
             </div>
 
             <div className="space-y-4">
-              {servicesBreakdown.map((s) => {
-                const Icon = s.icon;
+              {metrics.serviceMix.map((s) => {
+                const Icon = s.service.includes("Bus")
+                  ? Bus
+                  : s.service.includes("Train")
+                  ? Train
+                  : s.service.includes("Hotel")
+                  ? Hotel
+                  : Car;
+
                 return (
-                  <div key={s.name} className="space-y-1.5">
+                  <div key={s.service} className="space-y-1.5">
                     <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
                       <div className="flex items-center gap-2">
                         <Icon className="h-3.5 w-3.5 text-slate-500" />
-                        <span>{s.name}</span>
+                        <span>{s.service}</span>
                       </div>
                       <span>
-                        {s.share} ({s.count} bookings)
+                        {s.sharePercent}% ({s.count} bookings)
                       </span>
                     </div>
                     <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
-                      <div className={`h-full rounded-full ${s.color}`} style={{ width: s.share }} />
+                      <div className={`h-full rounded-full ${s.color}`} style={{ width: `${s.sharePercent}%` }} />
                     </div>
                   </div>
                 );
@@ -188,12 +209,7 @@ export default function AdminDashboardPage() {
             </div>
 
             <div className="space-y-3">
-              {[
-                { route: "Pune ⇄ Goa", mode: "Bus + Resort + Cabs", gmv: "₹3,42,000", volume: "310 Trips" },
-                { route: "Pune ⇄ Hyderabad", mode: "Train + Bus", gmv: "₹2,10,400", volume: "245 Trips" },
-                { route: "Pune ⇄ Mumbai", mode: "Deccan Queen + Cabs", gmv: "₹1,84,200", volume: "420 Trips" },
-                { route: "Bangalore ⇄ Goa", mode: "Luxury Sleeper", gmv: "₹1,05,900", volume: "109 Trips" },
-              ].map((c) => (
+              {metrics.corridorAnalytics.map((c) => (
                 <div
                   key={c.route}
                   className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs"
@@ -203,8 +219,8 @@ export default function AdminDashboardPage() {
                     <p className="text-[11px] text-slate-400">{c.mode}</p>
                   </div>
                   <div className="text-right">
-                    <span className="font-extrabold text-slate-900 text-sm">{c.gmv}</span>
-                    <span className="text-[11px] text-indigo-600 font-semibold block">{c.volume}</span>
+                    <span className="font-extrabold text-slate-900 text-sm">{formatCurrency(c.gmv)}</span>
+                    <span className="text-[11px] text-indigo-600 font-semibold block">{c.tripCount} Trips</span>
                   </div>
                 </div>
               ))}
@@ -212,7 +228,7 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* RECENT SIMULATED BOOKINGS STREAM */}
+        {/* RECENT BOOKINGS STREAM */}
         <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <h3 className="text-sm font-bold text-slate-900">Live Booking Transactions</h3>
