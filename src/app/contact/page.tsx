@@ -1,13 +1,21 @@
-import React from "react";
-import Link from "next/link";
-import { Mail, Phone, MapPin, Clock, ArrowLeft, Send, MessageSquare } from "lucide-react";
+"use client";
 
-export const metadata = {
-  title: "Contact & Concierge Support — ORIVYA",
-  description: "24/7 dedicated customer assistance for tickets, reservations, and multi-modal travel journeys.",
-};
+import React, { useState } from "react";
+import Link from "next/link";
+import { Mail, Phone, MapPin, ArrowLeft, Send, MessageSquare, CheckCircle2 } from "lucide-react";
 
 export default function ContactPage() {
+  const [submitted, setSubmitted] = useState(false);
+  const [name, setName] = useState("");
+  const [contact, setContact] = useState("");
+  const [tripRef, setTripRef] = useState("");
+  const [message, setMessage] = useState("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitted(true);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50/60 py-12 sm:py-16">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -67,56 +75,83 @@ export default function ContactPage() {
             </div>
 
             {/* Quick Message Form */}
-            <form onSubmit={(e) => { e.preventDefault(); alert("Thank you! Your inquiry has been routed to our concierge team."); }} className="space-y-4 p-5 rounded-2xl border border-slate-200 bg-slate-50/50">
-              <h3 className="text-sm font-bold text-slate-900">Send an Instant Message</h3>
-              
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-500 mb-1">Your Name</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Vijay Sharma"
-                  className="w-full text-xs font-semibold p-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-indigo-600"
-                />
+            {submitted ? (
+              <div className="p-8 rounded-2xl border border-emerald-200 bg-emerald-50/70 flex flex-col items-center justify-center text-center space-y-3">
+                <div className="h-12 w-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                  <CheckCircle2 className="h-6 w-6" />
+                </div>
+                <h3 className="text-base font-bold text-slate-900">Message Received</h3>
+                <p className="text-xs text-slate-600">
+                  Thank you, <strong>{name || "Traveller"}</strong>! Your support ticket has been registered. Our concierge team will reach out to <strong>{contact || "your contact"}</strong> promptly.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setSubmitted(false)}
+                  className="mt-2 text-xs font-bold text-emerald-700 hover:underline"
+                >
+                  Send another inquiry
+                </button>
               </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-4 p-5 rounded-2xl border border-slate-200 bg-slate-50/50">
+                <h3 className="text-sm font-bold text-slate-900">Send an Instant Message</h3>
+                
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-500 mb-1">Your Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="e.g. Vijay Sharma"
+                    className="w-full text-xs font-semibold p-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-indigo-600"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-500 mb-1">Email or Phone</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="vijay@example.com or +91 98765..."
-                  className="w-full text-xs font-semibold p-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-indigo-600"
-                />
-              </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-500 mb-1">Email or Phone</label>
+                  <input
+                    type="text"
+                    required
+                    value={contact}
+                    onChange={(e) => setContact(e.target.value)}
+                    placeholder="vijay@example.com or +91 98765..."
+                    className="w-full text-xs font-semibold p-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-indigo-600"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-500 mb-1">Trip Reference (Optional)</label>
-                <input
-                  type="text"
-                  placeholder="e.g. ORV-BUS-123456"
-                  className="w-full text-xs font-mono p-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-indigo-600"
-                />
-              </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-500 mb-1">Trip Reference (Optional)</label>
+                  <input
+                    type="text"
+                    value={tripRef}
+                    onChange={(e) => setTripRef(e.target.value)}
+                    placeholder="e.g. ORV-BUS-123456"
+                    className="w-full text-xs font-mono p-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-indigo-600"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-500 mb-1">Message</label>
-                <textarea
-                  rows={3}
-                  required
-                  placeholder="How can we assist your trip?"
-                  className="w-full text-xs font-semibold p-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-indigo-600"
-                />
-              </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-500 mb-1">Message</label>
+                  <textarea
+                    rows={3}
+                    required
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="How can we assist your trip?"
+                    className="w-full text-xs font-semibold p-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-indigo-600"
+                  />
+                </div>
 
-              <button
-                type="submit"
-                className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition-colors flex items-center justify-center gap-1.5 shadow-md shadow-indigo-600/20"
-              >
-                <Send className="h-3.5 w-3.5" />
-                <span>Submit Ticket</span>
-              </button>
-            </form>
+                <button
+                  type="submit"
+                  className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition-colors flex items-center justify-center gap-1.5 shadow-md shadow-indigo-600/20"
+                >
+                  <Send className="h-3.5 w-3.5" />
+                  <span>Submit Ticket</span>
+                </button>
+              </form>
+            )}
           </div>
         </div>
       </div>
