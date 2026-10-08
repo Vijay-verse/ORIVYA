@@ -36,22 +36,47 @@ export async function POST(request: Request) {
 
     const bookingRef = `ORV-BUS-${Math.floor(100000 + Math.random() * 900000)}`;
 
-    // 2. Process simulated payment order & capture
-    const paymentOrder = await defaultPaymentProvider.createPaymentOrder({
-      bookingReference: bookingRef,
-      amount: pricing.totalAmount,
-      currency: "INR",
-      paymentMethod,
-      customerEmail: contactEmail || "customer@example.com",
-      customerPhone: contactPhone,
-    });
+    // 2. Process Razorpay verification or simulated order & capture
+    const { razorpayOrderId, razorpayPaymentId, razorpaySignature } = body;
+    let paymentStatus: "PAID" | "FAILED" = "PAID";
+    let txnRef = razorpayPaymentId || `TXN-${Math.floor(10000000 + Math.random() * 90000000)}`;
 
-    const verification = await defaultPaymentProvider.verifyPayment({
-      orderId: paymentOrder.orderId,
-      transactionReference: paymentOrder.transactionReference,
-      paymentMethod,
-      amount: pricing.totalAmount,
-    });
+    if (razorpayOrderId && razorpayPaymentId && razorpaySignature) {
+      const verification = await defaultPaymentProvider.verifyPayment({
+        orderId: razorpayOrderId,
+        transactionReference: razorpayPaymentId,
+        paymentMethod: paymentMethod || "RAZORPAY",
+        amount: pricing.totalAmount,
+        razorpaySignature,
+      });
+
+      if (!verification.verified) {
+        return NextResponse.json(
+          { success: false, error: "Razorpay signature verification failed" },
+          { status: 400 }
+        );
+      }
+      paymentStatus = verification.status;
+      txnRef = razorpayPaymentId;
+    } else {
+      const paymentOrder = await defaultPaymentProvider.createPaymentOrder({
+        bookingReference: bookingRef,
+        amount: pricing.totalAmount,
+        currency: "INR",
+        paymentMethod,
+        customerEmail: contactEmail || "customer@example.com",
+        customerPhone: contactPhone,
+      });
+
+      const verification = await defaultPaymentProvider.verifyPayment({
+        orderId: paymentOrder.orderId,
+        transactionReference: paymentOrder.transactionReference,
+        paymentMethod,
+        amount: pricing.totalAmount,
+      });
+      paymentStatus = verification.status;
+      txnRef = paymentOrder.transactionReference;
+    }
 
     // 3. Release temporary hold token now that seats are confirmed
     if (holdToken) {
@@ -65,7 +90,7 @@ export async function POST(request: Request) {
       userId: userId || "user-default-01",
       bookingType: "bus" as const,
       status: "CONFIRMED" as const,
-      paymentStatus: verification.status,
+      paymentStatus: paymentStatus,
       baseAmount: pricing.baseAmount,
       taxAmount: pricing.taxAmount,
       convenienceFee: pricing.feeAmount,
@@ -87,7 +112,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       booking: confirmedBooking,
-      transactionReference: paymentOrder.transactionReference,
+      transactionReference: txnRef,
     });
   } catch (error: any) {
     return NextResponse.json(

@@ -25,6 +25,7 @@ import {
 import confetti from "canvas-confetti";
 import QRCode from "qrcode";
 import Link from "next/link";
+import { openRazorpayCheckout } from "@/lib/razorpay/checkout";
 
 interface HotelCheckoutModalProps {
   hotel: HotelProperty;
@@ -88,14 +89,16 @@ export const HotelCheckoutModal: React.FC<HotelCheckoutModalProps> = ({
     }
   };
 
-  const handleConfirmReservation = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const finalizeReservation = async (paymentDetails?: {
+    razorpayOrderId?: string;
+    razorpayPaymentId?: string;
+    razorpaySignature?: string;
+  }) => {
     setIsProcessing(true);
 
     try {
-      await new Promise((r) => setTimeout(r, 1200));
-
       const bookingRef = `ORV-HTL-${Math.floor(100000 + Math.random() * 900000)}`;
+      const txnRef = paymentDetails?.razorpayPaymentId || `TXN-${Math.floor(10000000 + Math.random() * 90000000)}`;
 
       const booking: Booking = {
         id: `bk-htl-${Date.now()}`,
@@ -129,6 +132,7 @@ export const HotelCheckoutModal: React.FC<HotelCheckoutModalProps> = ({
           checkOutDate: checkOut,
           nightsCount: nights,
           roomsCount: 1,
+          transactionReference: txnRef,
         },
       };
 
@@ -141,6 +145,7 @@ export const HotelCheckoutModal: React.FC<HotelCheckoutModalProps> = ({
         checkOut,
         nights,
         status: "CONFIRMED",
+        paymentId: txnRef,
       });
 
       const qrUrl = await QRCode.toDataURL(qrData, { width: 240, margin: 1 });
@@ -158,6 +163,72 @@ export const HotelCheckoutModal: React.FC<HotelCheckoutModalProps> = ({
       alert("Failed to confirm hotel reservation.");
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleConfirmReservation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsProcessing(true);
+
+    try {
+      // 1. Create Razorpay order
+      const orderRes = await fetch("/api/payment/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: totalPayable,
+          currency: "INR",
+          bookingReference: `ORV-HTL-${Date.now().toString().slice(-6)}`,
+          paymentMethod,
+          customerName: leadGuestName,
+          customerEmail: leadGuestEmail,
+          customerPhone: leadGuestPhone,
+          notes: {
+            service: "hotel",
+            hotelName: hotel.name,
+            roomName: room.name,
+          },
+        }),
+      });
+
+      const orderData = await orderRes.json();
+
+      if (orderData.success && orderData.provider === "razorpay" && orderData.keyId) {
+        const opened = await openRazorpayCheckout({
+          keyId: orderData.keyId,
+          orderId: orderData.orderId,
+          amount: totalPayable,
+          name: "ORIVYA Hospitality",
+          description: `${hotel.name} - ${room.name} (${nights} Nights)`,
+          prefill: {
+            name: leadGuestName,
+            email: leadGuestEmail,
+            contact: leadGuestPhone,
+          },
+          themeColor: "#d97706",
+          onSuccess: async (rzpResult) => {
+            await finalizeReservation({
+              razorpayOrderId: rzpResult.razorpay_order_id,
+              razorpayPaymentId: rzpResult.razorpay_payment_id,
+              razorpaySignature: rzpResult.razorpay_signature,
+            });
+          },
+          onDismiss: () => {
+            setIsProcessing(false);
+          },
+          onError: async () => {
+            await finalizeReservation();
+          },
+        });
+
+        if (!opened) {
+          await finalizeReservation();
+        }
+      } else {
+        await finalizeReservation();
+      }
+    } catch {
+      await finalizeReservation();
     }
   };
 

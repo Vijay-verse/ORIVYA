@@ -193,12 +193,14 @@ export interface Booking {
   discountAmount: number;
   totalAmount: number;
   paymentMethod: "UPI" | "CREDIT_CARD" | "DEBIT_CARD" | "NET_BANKING" | "WALLET";
+  transactionReference?: string;
   createdAt: string;
   contactEmail: string;
   contactPhone: string;
   passengers: Passenger[];
   // polymorphic details based on bookingType
   details: {
+    transactionReference?: string;
     // For bus:
     busSchedule?: BusSchedule;
     seats?: string[];

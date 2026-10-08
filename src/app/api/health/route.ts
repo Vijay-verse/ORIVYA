@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { RazorpayPaymentProvider } from "@/services/payment";
 
 export async function GET() {
   const configured = isSupabaseConfigured();
@@ -44,6 +45,9 @@ export async function GET() {
     }
   }
 
+  const razorpay = new RazorpayPaymentProvider();
+  const isRzpReady = razorpay.isConfigured();
+
   return NextResponse.json({
     status: "healthy",
     timestamp: new Date().toISOString(),
@@ -52,6 +56,13 @@ export async function GET() {
       isConfigured: configured,
       host: maskedHost,
       connection: dbConnection,
+    },
+    paymentGateway: {
+      isConfigured: isRzpReady,
+      provider: isRzpReady ? "razorpay" : "mock",
+      keyIdMasked: isRzpReady
+        ? `${razorpay.getKeyId().slice(0, 12)}...`
+        : "mock_demo",
     },
     services: {
       busBooking: "operational",
@@ -65,3 +76,4 @@ export async function GET() {
     },
   });
 }
+
