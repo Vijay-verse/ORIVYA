@@ -137,22 +137,53 @@ export const Footer = () => {
 
           <div>
             <h5 className="text-xs font-semibold uppercase tracking-wider text-slate-200 mb-3">
-              System Architecture
+              Trust & Legal
             </h5>
-            <p className="text-xs text-slate-400 leading-relaxed mb-3">
-              Crafted with Next.js 15, TypeScript, Tailwind CSS, and full relational booking lifecycle.
-            </p>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-800 text-[11px] font-mono text-emerald-400 border border-slate-700">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              All Simulated Systems Operational
-            </div>
+            <ul className="space-y-2 text-xs">
+              <li>
+                <Link href="/terms" className="hover:text-white transition-colors">
+                  Terms of Service
+                </Link>
+              </li>
+              <li>
+                <Link href="/privacy" className="hover:text-white transition-colors">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/refund-policy" className="hover:text-white transition-colors">
+                  Cancellation & Refund Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className="hover:text-white transition-colors">
+                  24/7 Concierge & Support
+                </Link>
+              </li>
+              <li>
+                <Link href="/admin" className="text-indigo-400 hover:text-indigo-300 transition-colors font-semibold">
+                  Admin Command Center
+                </Link>
+              </li>
+            </ul>
           </div>
         </div>
 
-        {/* Bottom copyright */}
-        <div className="pt-8 mt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500">
-          <p>© {new Date().getFullYear()} ORIVYA Inc. One trip. Every booking. One place.</p>
-          <p className="mt-2 sm:mt-0">Designed for modern travelers.</p>
+        {/* Bottom copyright & Trust Badges */}
+        <div className="pt-8 mt-6 border-t border-slate-800/80 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+          <div className="flex flex-col sm:flex-row items-center gap-2 text-center sm:text-left">
+            <p>© {new Date().getFullYear()} ORIVYA Technologies. Dedicated Ground & Hospitality Network.</p>
+            <span className="hidden sm:inline text-slate-700">•</span>
+            <p className="text-slate-400 font-medium">Buses • Trains • Hotels • Cabs</p>
+          </div>
+          <div className="flex items-center gap-4 text-[11px] text-slate-400">
+            <span className="inline-flex items-center gap-1.5 text-emerald-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Razorpay Secured Gateway
+            </span>
+            <span>•</span>
+            <span>Supabase Cloud Sync</span>
+          </div>
         </div>
       </div>
     </footer>
