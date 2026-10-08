@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
   Ticket, 
@@ -16,7 +16,8 @@ import {
   X, 
   Printer, 
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  ArrowLeft
 } from "lucide-react";
 import { useTravelStore } from "@/lib/store";
 import { Booking } from "@/types";
@@ -29,6 +30,17 @@ export default function BookingsPage() {
   const [ticketQrUrl, setTicketQrUrl] = useState<string>("");
   const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null);
   const [refundAlert, setRefundAlert] = useState<{ message: string; success: boolean } | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setSelectedBookingForPass(null);
+        setCancellingBookingId(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const handleOpenDigitalPass = async (booking: Booking) => {
     setSelectedBookingForPass(booking);
@@ -194,41 +206,61 @@ export default function BookingsPage() {
 
       {/* DIGITAL TICKET & QR CODE MODAL */}
       {selectedBookingForPass && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm">
-          <div className="w-full max-w-lg bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-200 space-y-4 animate-in zoom-in-95 duration-200">
-            <div className="bg-[#0B0F19] text-white p-5 flex items-center justify-between">
-              <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-indigo-400">
-                  ORIVYA VERIFIED PASS
-                </span>
-                <h4 className="text-lg font-extrabold">{selectedBookingForPass.referenceNumber}</h4>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/35 backdrop-blur-xs"
+          onClick={() => setSelectedBookingForPass(null)}
+        >
+          <div
+            className="relative w-full max-w-lg max-h-[92vh] flex flex-col rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* STICKY HEADER WITH ALWAYS VISIBLE BACK BUTTON & CLOSE */}
+            <div className="sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-slate-200 bg-white/95 backdrop-blur-md shrink-0">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSelectedBookingForPass(null)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs transition-colors shrink-0"
+                  title="Return to bookings list"
+                >
+                  <ArrowLeft className="h-4 w-4 text-slate-600" />
+                  <span>Back to Bookings</span>
+                </button>
+                <div className="truncate">
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-indigo-700 block">
+                    ORIVYA VERIFIED PASS
+                  </span>
+                  <h4 className="text-sm sm:text-base font-extrabold text-slate-900 truncate">{selectedBookingForPass.referenceNumber}</h4>
+                </div>
               </div>
               <button
                 onClick={() => setSelectedBookingForPass(null)}
-                className="text-slate-400 hover:text-white text-lg font-bold"
+                aria-label="Close"
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors shrink-0"
               >
-                ✕
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="p-6 space-y-6 text-center">
+            {/* SCROLLABLE BODY */}
+            <div className="p-4 sm:p-6 space-y-6 text-center overflow-y-auto flex-1 overscroll-contain">
               {ticketQrUrl && (
                 <div className="flex flex-col items-center">
                   <img
                     src={ticketQrUrl}
                     alt="Ticket QR"
-                    className="w-44 h-44 rounded-2xl border-2 border-slate-200 p-2 shadow-sm"
+                    className="w-44 h-44 rounded-2xl border-2 border-slate-200 p-2 shadow-sm bg-white"
                   />
-                  <span className="text-[10px] font-mono text-slate-400 mt-2">
+                  <span className="text-[10px] font-mono text-slate-500 mt-2 font-medium">
                     Scannable Digital Verification Hash
                   </span>
                 </div>
               )}
 
-              <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100 text-left space-y-2 text-xs">
+              <div className="rounded-2xl bg-slate-50 p-4 border border-slate-200/80 text-left space-y-2 text-xs">
                 <div className="flex justify-between">
                   <span className="text-slate-500">Booking Status:</span>
-                  <span className="font-bold text-slate-900">{selectedBookingForPass.status}</span>
+                  <span className="font-bold text-emerald-700">{selectedBookingForPass.status}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Service:</span>
@@ -245,30 +277,33 @@ export default function BookingsPage() {
                 {selectedBookingForPass.details.seats && (
                   <div className="flex justify-between">
                     <span className="text-slate-500">Seats:</span>
-                    <span className="font-mono font-bold text-indigo-600">
+                    <span className="font-mono font-bold text-indigo-700">
                       {selectedBookingForPass.details.seats.join(", ")}
                     </span>
                   </div>
                 )}
               </div>
+            </div>
 
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => window.print()}
-                  className="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1.5"
-                >
-                  <Printer className="h-4 w-4" />
-                  <span>Print Ticket</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedBookingForPass(null)}
-                  className="py-3 px-6 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs"
-                >
-                  Close
-                </button>
-              </div>
+            {/* ACTION ROW */}
+            <div className="p-3 sm:p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={() => setSelectedBookingForPass(null)}
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs transition-colors shrink-0"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back to Bookings</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="py-2.5 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all"
+              >
+                <Printer className="h-4 w-4" />
+                <span>Print Ticket</span>
+              </button>
             </div>
           </div>
         </div>
@@ -276,10 +311,16 @@ export default function BookingsPage() {
 
       {/* CANCELLATION CONFIRMATION DIALOG */}
       {cancellingBookingId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 animate-in zoom-in-95 duration-200">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/35 backdrop-blur-xs"
+          onClick={() => setCancellingBookingId(null)}
+        >
+          <div
+            className="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center gap-3 text-rose-600">
-              <AlertTriangle className="h-6 w-6" />
+              <AlertTriangle className="h-6 w-6 shrink-0" />
               <h3 className="text-base font-bold text-slate-900">Confirm Cancellation</h3>
             </div>
 
@@ -296,17 +337,18 @@ export default function BookingsPage() {
             <div className="flex items-center gap-3 pt-2">
               <button
                 type="button"
+                onClick={() => setCancellingBookingId(null)}
+                className="flex-1 py-3 px-4 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors flex items-center justify-center gap-1.5"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span>Keep Booking</span>
+              </button>
+              <button
+                type="button"
                 onClick={() => handleConfirmCancel(cancellingBookingId)}
                 className="flex-1 py-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition-colors"
               >
                 YES, CANCEL & REFUND
-              </button>
-              <button
-                type="button"
-                onClick={() => setCancellingBookingId(null)}
-                className="py-3 px-5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs"
-              >
-                Keep Booking
               </button>
             </div>
           </div>

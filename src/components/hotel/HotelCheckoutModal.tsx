@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { HotelProperty, HotelRoom, Passenger, Booking } from "@/types";
 import { useTravelStore } from "@/lib/store";
 import { useAuth } from "@/lib/auth/AuthContext";
@@ -20,7 +20,8 @@ import {
   Users,
   MapPin,
   Star,
-  Info
+  Info,
+  ArrowLeft
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import QRCode from "qrcode";
@@ -63,6 +64,14 @@ export const HotelCheckoutModal: React.FC<HotelCheckoutModalProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [confirmedBooking, setConfirmedBooking] = useState<Booking | null>(null);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>("");
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
 
   const roomSubtotal = room.pricePerNight * nights;
   const taxes = Math.round(roomSubtotal * 0.12); // 12% Hospitality GST
@@ -233,29 +242,52 @@ export const HotelCheckoutModal: React.FC<HotelCheckoutModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto">
-      <div className="relative w-full max-w-2xl my-8 rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden">
-        {/* HEADER */}
-        <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/80">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/35 backdrop-blur-xs"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="relative w-full max-w-2xl max-h-[92vh] flex flex-col rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-150"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* STICKY HEADER WITH ALWAYS VISIBLE BACK BUTTON & CLOSE */}
+        <div className="sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-slate-200 bg-white/95 backdrop-blur-md shrink-0">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-600 text-white font-bold">
-              <Building2 className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-slate-900">
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold transition-all hover:border-slate-300"
+              title="Return to Hotel Rooms"
+            >
+              <ArrowLeft className="h-4 w-4 text-amber-600" />
+              <span>Back to Rooms</span>
+            </button>
+            <div className="hidden sm:block h-5 w-px bg-slate-200" />
+            <div className="hidden sm:block">
+              <h3 className="text-sm sm:text-base font-bold text-slate-900 leading-tight">
                 {confirmedBooking ? "Hotel Reservation Confirmed!" : `Book ${hotel.name}`}
               </h3>
-              <p className="text-xs text-slate-500 flex items-center gap-1.5">
-                <span>{room.name}</span>
-                <span>•</span>
-                <span>{nights} Nights ({checkIn} ➔ {checkOut})</span>
+              <p className="text-[11px] text-slate-500">
+                {room.name} • {nights} Nights ({checkIn} ➔ {checkOut})
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-700">
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            aria-label="Close modal"
+            title="Close (Esc)"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
+
+        {/* SCROLLABLE BODY */}
+        <div className="overflow-y-auto flex-1 overscroll-contain">
 
         {confirmedBooking ? (
           /* CONFIRMATION E-VOUCHER */
@@ -515,23 +547,35 @@ export const HotelCheckoutModal: React.FC<HotelCheckoutModalProps> = ({
               </div>
             </div>
 
-            {/* CONFIRM BUTTON */}
-            <button
-              type="submit"
-              disabled={isProcessing}
-              className="w-full py-4 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs shadow-lg shadow-amber-600/30 transition-all flex items-center justify-center gap-2"
-            >
-              {isProcessing ? (
-                <span>Confirming Reservation & Syncing Trip...</span>
-              ) : (
-                <>
-                  <ShieldCheck className="h-4 w-4" />
-                  <span>PAY {formatCurrency(totalPayable)} & CONFIRM STAY</span>
-                </>
-              )}
-            </button>
+            {/* ACTION ROW WITH EXPLICIT BACK BUTTON AND PAY */}
+            <div className="flex flex-col-reverse sm:flex-row items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-full sm:w-auto py-3.5 px-6 rounded-2xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors shrink-0 flex items-center justify-center gap-1.5"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back to Rooms</span>
+              </button>
+
+              <button
+                type="submit"
+                disabled={isProcessing}
+                className="w-full sm:flex-1 py-3.5 sm:py-4 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs sm:text-sm shadow-lg shadow-amber-600/30 transition-all flex items-center justify-center gap-2"
+              >
+                {isProcessing ? (
+                  <span>Confirming Reservation & Syncing Trip...</span>
+                ) : (
+                  <>
+                    <ShieldCheck className="h-4 w-4" />
+                    <span>PAY {formatCurrency(totalPayable)} & CONFIRM STAY</span>
+                  </>
+                )}
+              </button>
+            </div>
           </form>
         )}
+        </div>
       </div>
     </div>
   );

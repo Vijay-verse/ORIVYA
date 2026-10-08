@@ -211,53 +211,53 @@ function CabSearchContent() {
               </div>
 
               {/* SIMULATED MAP RADAR VIEW */}
-              <div className="relative h-56 rounded-2xl bg-slate-900 overflow-hidden flex items-center justify-center border border-slate-800">
+              <div className="relative h-56 rounded-2xl bg-slate-50 overflow-hidden flex items-center justify-center border border-slate-200">
                 {/* Radar grid effect */}
-                <div className="absolute inset-0 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:16px_16px] opacity-20" />
+                <div className="absolute inset-0 bg-[radial-gradient(#10b981_1.5px,transparent_1.5px)] [background-size:18px_18px] opacity-25" />
 
                 {rideStatus === "idle" && (
-                  <div className="text-center p-4 text-slate-400 text-xs">
-                    <Car className="h-8 w-8 mx-auto mb-2 text-slate-500" />
+                  <div className="text-center p-4 text-slate-500 text-xs relative z-10">
+                    <Car className="h-8 w-8 mx-auto mb-2 text-slate-400" />
                     <span>Click Book Cab to simulate live driver matching</span>
                   </div>
                 )}
 
                 {rideStatus === "searching" && (
-                  <div className="text-center space-y-3">
-                    <div className="h-12 w-12 rounded-full border-4 border-emerald-500/20 border-t-emerald-500 animate-spin mx-auto" />
-                    <span className="text-xs font-bold text-emerald-400 block">
+                  <div className="text-center space-y-3 relative z-10">
+                    <div className="h-12 w-12 rounded-full border-4 border-emerald-500/20 border-t-emerald-600 animate-spin mx-auto" />
+                    <span className="text-xs font-bold text-emerald-700 block">
                       Searching nearest drivers in Madgaon / Panaji...
                     </span>
                   </div>
                 )}
 
                 {(rideStatus === "driver_assigned" || rideStatus === "arriving") && (
-                  <div className="text-center space-y-2 p-4 text-white">
-                    <div className="h-12 w-12 rounded-full bg-emerald-500 text-white flex items-center justify-center mx-auto animate-pulse">
+                  <div className="text-center space-y-2 p-4 text-slate-900 relative z-10">
+                    <div className="h-12 w-12 rounded-full bg-emerald-600 text-white flex items-center justify-center mx-auto shadow-md shadow-emerald-600/30 animate-pulse">
                       <Car className="h-6 w-6" />
                     </div>
-                    <p className="text-sm font-bold">Driver on the way</p>
-                    <p className="text-xs text-emerald-400 font-mono font-bold">
+                    <p className="text-sm font-bold text-slate-900">Driver on the way</p>
+                    <p className="text-xs text-emerald-700 font-mono font-bold">
                       {liveDistanceKm > 0 ? `${liveDistanceKm} km away` : "Arriving at pickup point"}
                     </p>
                   </div>
                 )}
 
                 {rideStatus === "in_trip" && (
-                  <div className="text-center space-y-2 p-4 text-white">
-                    <div className="h-12 w-12 rounded-full bg-indigo-500 text-white flex items-center justify-center mx-auto animate-bounce">
+                  <div className="text-center space-y-2 p-4 text-slate-900 relative z-10">
+                    <div className="h-12 w-12 rounded-full bg-indigo-600 text-white flex items-center justify-center mx-auto shadow-md shadow-indigo-600/30 animate-bounce">
                       <Navigation className="h-6 w-6" />
                     </div>
-                    <p className="text-sm font-bold text-indigo-300">Ride in Progress</p>
-                    <p className="text-xs text-slate-300">En route to SeaView Resort</p>
+                    <p className="text-sm font-bold text-indigo-700">Ride in Progress</p>
+                    <p className="text-xs text-slate-500 font-medium">En route to SeaView Resort</p>
                   </div>
                 )}
 
                 {rideStatus === "completed" && (
-                  <div className="text-center space-y-2 p-4 text-white">
-                    <CheckCircle2 className="h-12 w-12 text-emerald-400 mx-auto" />
-                    <p className="text-sm font-bold text-emerald-300">Ride Completed!</p>
-                    <p className="text-xs text-slate-300">Synced to your Unified Itinerary</p>
+                  <div className="text-center space-y-2 p-4 text-slate-900 relative z-10">
+                    <CheckCircle2 className="h-12 w-12 text-emerald-600 mx-auto" />
+                    <p className="text-sm font-bold text-emerald-700">Ride Completed!</p>
+                    <p className="text-xs text-slate-500 font-medium">Synced to your Unified Itinerary</p>
                   </div>
                 )}
               </div>
@@ -334,7 +334,7 @@ function CabSearchContent() {
                       setRideStatus("idle");
                       setCompletedBooking(null);
                     }}
-                    className="w-full py-2.5 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800"
+                    className="w-full py-2.5 rounded-xl border border-slate-200 bg-slate-100 text-slate-800 font-bold text-xs hover:bg-slate-200 transition-colors"
                   >
                     Book Another Ride
                   </button>

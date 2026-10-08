@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { TrainSchedule, TrainClassOption, Passenger, Booking } from "@/types";
 import { useTravelStore } from "@/lib/store";
 import { useAuth } from "@/lib/auth/AuthContext";
@@ -15,7 +15,8 @@ import {
   Wallet, 
   QrCode,
   Ticket,
-  ArrowRight
+  ArrowRight,
+  ArrowLeft
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import QRCode from "qrcode";
@@ -44,6 +45,14 @@ export const TrainCheckoutModal: React.FC<TrainCheckoutModalProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [confirmedBooking, setConfirmedBooking] = useState<Booking | null>(null);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>("");
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
 
   const baseFare = selectedClass.price;
   const taxes = Math.round(baseFare * 0.05); // 5% GST
@@ -122,27 +131,51 @@ export const TrainCheckoutModal: React.FC<TrainCheckoutModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto">
-      <div className="relative w-full max-w-2xl my-8 rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden">
-        {/* HEADER */}
-        <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/80">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/35 backdrop-blur-xs"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="relative w-full max-w-2xl max-h-[92vh] flex flex-col rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-150"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* STICKY HEADER WITH ALWAYS VISIBLE BACK BUTTON & CLOSE */}
+        <div className="sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-slate-200 bg-white/95 backdrop-blur-md shrink-0">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600 text-white font-bold">
-              <Train className="h-5 w-5" />
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs transition-colors shrink-0"
+              title="Return to train selection"
+            >
+              <ArrowLeft className="h-4 w-4 text-slate-600" />
+              <span>Back to Trains</span>
+            </button>
+            <div className="hidden sm:flex h-9 w-9 items-center justify-center rounded-xl bg-violet-600 text-white font-bold shrink-0">
+              <Train className="h-4 w-4" />
             </div>
-            <div>
-              <h3 className="text-base font-bold text-slate-900">
+            <div className="truncate">
+              <h3 className="text-sm sm:text-base font-bold text-slate-900 truncate">
                 {confirmedBooking ? "Train Booking Confirmed!" : `Book ${train.trainName} (#${train.trainNumber})`}
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-[11px] text-slate-500 truncate">
                 Class: {selectedClass.classCode} ({selectedClass.className}) • {train.fromCity} ➔ {train.toCity}
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-700">
+          <button
+            onClick={onClose}
+            aria-label="Close modal"
+            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors shrink-0"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
+
+        {/* SCROLLABLE MODAL BODY */}
+        <div className="overflow-y-auto flex-1 overscroll-contain">
 
         {confirmedBooking ? (
           <div className="p-6 space-y-6">
@@ -307,15 +340,28 @@ export const TrainCheckoutModal: React.FC<TrainCheckoutModalProps> = ({
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={isProcessing}
-              className="w-full py-3.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-extrabold text-xs shadow-lg shadow-violet-600/30 transition-all flex items-center justify-center gap-2"
-            >
-              {isProcessing ? "Reserving berth & generating PNR..." : `PAY ${formatCurrency(totalPayable)} & CONFIRM TICKET`}
-            </button>
+            {/* ACTION ROW WITH EXPLICIT BACK BUTTON AND PAY */}
+            <div className="flex flex-col-reverse sm:flex-row items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-full sm:w-auto py-3.5 px-6 rounded-2xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors shrink-0 flex items-center justify-center gap-1.5"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back to Trains</span>
+              </button>
+
+              <button
+                type="submit"
+                disabled={isProcessing}
+                className="w-full sm:flex-1 py-3.5 sm:py-4 rounded-2xl bg-violet-600 hover:bg-violet-700 text-white font-extrabold text-xs sm:text-sm shadow-lg shadow-violet-600/30 transition-all flex items-center justify-center gap-2"
+              >
+                {isProcessing ? "Reserving berth & generating PNR..." : `PAY ${formatCurrency(totalPayable)} & CONFIRM TICKET`}
+              </button>
+            </div>
           </form>
         )}
+        </div>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { 
   Hotel, 
@@ -14,7 +14,9 @@ import {
   Users, 
   ChevronRight, 
   ShieldCheck,
-  Sparkles
+  Sparkles,
+  ArrowLeft,
+  X
 } from "lucide-react";
 import { MOCK_HOTEL_PROPERTIES } from "@/lib/data/mockHotels";
 import { HotelProperty, HotelRoom } from "@/types";
@@ -31,6 +33,17 @@ function HotelSearchContent() {
   const [selectedHotel, setSelectedHotel] = useState<HotelProperty | null>(null);
   const [selectedRoom, setSelectedRoom] = useState<HotelRoom | null>(null);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setSelectedHotel(null);
+        setSelectedRoom(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // Calculate nights
   const nights = Math.max(
@@ -184,27 +197,56 @@ function HotelSearchContent() {
 
       {/* ROOM CUSTOMIZATION & RESERVATION MODAL */}
       {selectedHotel && selectedRoom && !isCheckingOut && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto">
-          <div className="relative w-full max-w-2xl my-8 rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden space-y-6">
-            <div className="bg-[#0B0F19] text-white p-5 flex items-center justify-between">
-              <div>
-                <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">
-                  HOTEL RESERVATION
-                </span>
-                <h3 className="text-lg font-bold">{selectedHotel.name}</h3>
-                <p className="text-xs text-slate-400">
-                  {nights} Nights ({checkIn} ➔ {checkOut})
-                </p>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/35 backdrop-blur-xs"
+          onClick={() => {
+            setSelectedHotel(null);
+            setSelectedRoom(null);
+          }}
+        >
+          <div
+            className="relative w-full max-w-2xl max-h-[92vh] flex flex-col rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* STICKY HEADER WITH ALWAYS VISIBLE BACK BUTTON & CLOSE */}
+            <div className="sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-slate-200 bg-white/95 backdrop-blur-md shrink-0">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedHotel(null);
+                    setSelectedRoom(null);
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs transition-colors shrink-0"
+                  title="Return to hotels list"
+                >
+                  <ArrowLeft className="h-4 w-4 text-slate-600" />
+                  <span>Back to Hotels</span>
+                </button>
+                <div className="truncate">
+                  <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider block">
+                    HOTEL RESERVATION
+                  </span>
+                  <h3 className="text-sm sm:text-base font-bold text-slate-900 truncate">{selectedHotel.name}</h3>
+                  <p className="text-[11px] text-slate-500 truncate">
+                    {nights} Nights ({checkIn} ➔ {checkOut})
+                  </p>
+                </div>
               </div>
               <button
-                onClick={() => setSelectedHotel(null)}
-                className="text-slate-400 hover:text-white font-bold"
+                onClick={() => {
+                  setSelectedHotel(null);
+                  setSelectedRoom(null);
+                }}
+                aria-label="Close"
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors shrink-0"
               >
-                ✕
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="p-6 space-y-6">
+            {/* SCROLLABLE MODAL BODY */}
+            <div className="p-4 sm:p-6 space-y-6 overflow-y-auto flex-1 overscroll-contain">
               {/* Room Tier Options */}
               <div className="space-y-3">
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-400">
@@ -253,7 +295,7 @@ function HotelSearchContent() {
                 </div>
                 <div className="pt-2 border-t border-slate-200 flex justify-between font-bold text-sm text-slate-900">
                   <span>Total Amount</span>
-                  <span className="text-amber-700 text-lg">
+                  <span className="text-amber-700 text-lg font-extrabold">
                     {formatCurrency(
                       selectedRoom.pricePerNight * nights +
                         Math.round(selectedRoom.pricePerNight * nights * 0.12)
@@ -262,14 +304,29 @@ function HotelSearchContent() {
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={handleProceedToCheckout}
-                className="w-full py-3.5 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs shadow-lg shadow-amber-600/30 transition-all flex items-center justify-center gap-2"
-              >
-                <ShieldCheck className="h-4 w-4" />
-                <span>PROCEED TO GUEST DETAILS & PAYMENT</span>
-              </button>
+              {/* ACTION ROW WITH EXPLICIT BACK BUTTON AND PROCEED */}
+              <div className="flex flex-col-reverse sm:flex-row items-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedHotel(null);
+                    setSelectedRoom(null);
+                  }}
+                  className="w-full sm:w-auto py-3 px-5 rounded-2xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors shrink-0 flex items-center justify-center gap-1.5"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  <span>Back to Hotels</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleProceedToCheckout}
+                  className="w-full sm:flex-1 py-3.5 sm:py-4 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs sm:text-sm shadow-lg shadow-amber-600/30 transition-all flex items-center justify-center gap-2"
+                >
+                  <ShieldCheck className="h-4 w-4" />
+                  <span>PROCEED TO GUEST DETAILS & PAYMENT</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

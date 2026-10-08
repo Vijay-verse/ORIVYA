@@ -22,6 +22,7 @@ import {
   X, 
   Ticket, 
   ArrowRight,
+  ArrowLeft,
   AlertTriangle,
   QrCode
 } from "lucide-react";
@@ -109,6 +110,14 @@ export const BusCheckoutModal: React.FC<BusCheckoutModalProps> = ({
       releaseHeldSeats(schedule.id);
     };
   }, [schedule.id, selectedSeats]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
@@ -276,34 +285,62 @@ export const BusCheckoutModal: React.FC<BusCheckoutModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto">
-      <div className="relative w-full max-w-3xl my-8 rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden">
-        {/* MODAL HEADER */}
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-slate-100 bg-slate-50/80">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/35 backdrop-blur-xs"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="relative w-full max-w-3xl max-h-[92vh] flex flex-col rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-150"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* STICKY MODAL HEADER WITH ALWAYS-VISIBLE BACK & CLOSE BUTTONS */}
+        <div className="sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-slate-200 bg-white/95 backdrop-blur-md shrink-0">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white">
-              <Ticket className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-tight">
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold transition-all hover:border-slate-300"
+              title="Return to Seat Selection"
+            >
+              <ArrowLeft className="h-4 w-4 text-indigo-600" />
+              <span>Back to Seats</span>
+            </button>
+            <div className="hidden sm:block h-5 w-px bg-slate-200" />
+            <div className="hidden sm:block">
+              <h3 className="text-sm sm:text-base font-bold text-slate-900 leading-tight">
                 {confirmedBooking ? "Booking Confirmed!" : "Review & Complete Booking"}
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-[11px] text-slate-500">
                 {schedule.operator.name} • {schedule.fromCity} ➔ {schedule.toCity}
               </p>
             </div>
           </div>
 
-          <button
-            onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/50"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {!confirmedBooking && (
+              <div className="flex items-center gap-1.5 text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-200">
+                <Clock className="h-3.5 w-3.5 text-amber-600 animate-pulse" />
+                <span>{formattedTime}</span>
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+              aria-label="Close modal"
+              title="Close (Esc)"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
         </div>
 
-        {/* IF CONFIRMED: SHOW DIGITAL TICKET WITH QR CODE */}
-        {confirmedBooking ? (
+        {/* SCROLLABLE CONTENT BODY */}
+        <div className="overflow-y-auto flex-1 overscroll-contain">
+          {/* IF CONFIRMED: SHOW DIGITAL TICKET WITH QR CODE */}
+          {confirmedBooking ? (
           <div className="p-6 sm:p-8 space-y-6">
             <div className="rounded-3xl border border-emerald-200 bg-emerald-50/60 p-4 text-center">
               <CheckCircle2 className="h-10 w-10 text-emerald-600 mx-auto mb-2" />
@@ -625,22 +662,34 @@ export const BusCheckoutModal: React.FC<BusCheckoutModalProps> = ({
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={isProcessing || timeLeft <= 0}
-              className="w-full py-4 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-extrabold text-sm shadow-xl shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 active:scale-[0.99] disabled:opacity-50"
-            >
-              {isProcessing ? (
-                <span>Securing payment & generating ticket...</span>
-              ) : (
-                <>
-                  <ShieldCheck className="h-4 w-4" />
-                  <span>PAY {formatCurrency(totalPayable)} & CONFIRM TICKET</span>
-                </>
-              )}
-            </button>
+            <div className="flex flex-col-reverse sm:flex-row items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-full sm:w-auto py-3.5 px-6 rounded-2xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors shrink-0 flex items-center justify-center gap-1.5"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back to Seat Map</span>
+              </button>
+
+              <button
+                type="submit"
+                disabled={isProcessing || timeLeft <= 0}
+                className="w-full sm:flex-1 py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-extrabold text-xs sm:text-sm shadow-xl shadow-indigo-600/25 transition-all flex items-center justify-center gap-2 active:scale-[0.99] disabled:opacity-50"
+              >
+                {isProcessing ? (
+                  <span>Securing payment & generating ticket...</span>
+                ) : (
+                  <>
+                    <ShieldCheck className="h-4 w-4" />
+                    <span>PAY {formatCurrency(totalPayable)} & CONFIRM TICKET</span>
+                  </>
+                )}
+              </button>
+            </div>
           </form>
         )}
+        </div>
       </div>
     </div>
   );

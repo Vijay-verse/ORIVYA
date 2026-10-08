@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { 
   Train, 
@@ -13,7 +13,9 @@ import {
   ChevronRight, 
   ArrowRight,
   Sparkles,
-  Ticket
+  Ticket,
+  ArrowLeft,
+  X
 } from "lucide-react";
 import { MOCK_TRAIN_SCHEDULES } from "@/lib/data/mockTrains";
 import { TrainSchedule, TrainClassOption } from "@/types";
@@ -36,6 +38,17 @@ function TrainSearchContent() {
   } | null>(null);
   const [pnrInput, setPnrInput] = useState("");
   const [pnrResult, setPnrResult] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setSelectedTrainForRoute(null);
+        setSelectedBooking(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const trains = MOCK_TRAIN_SCHEDULES.filter((t) => {
     return (
@@ -256,26 +269,46 @@ function TrainSearchContent() {
 
       {/* ROUTE HALTS MODAL */}
       {selectedTrainForRoute && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm">
-          <div className="w-full max-w-xl bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-200 space-y-4 animate-in zoom-in-95 duration-200">
-            <div className="bg-[#0B0F19] text-white p-5 flex items-center justify-between">
-              <div>
-                <span className="text-[10px] uppercase font-bold text-violet-400">
-                  ROUTE & TIMETABLE
-                </span>
-                <h4 className="text-lg font-bold">
-                  {selectedTrainForRoute.trainName} (#{selectedTrainForRoute.trainNumber})
-                </h4>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/35 backdrop-blur-xs"
+          onClick={() => setSelectedTrainForRoute(null)}
+        >
+          <div
+            className="relative w-full max-w-xl max-h-[92vh] flex flex-col rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* STICKY HEADER WITH ALWAYS VISIBLE BACK BUTTON & CLOSE */}
+            <div className="sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-slate-200 bg-white/95 backdrop-blur-md shrink-0">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSelectedTrainForRoute(null)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs transition-colors shrink-0"
+                  title="Return to train search"
+                >
+                  <ArrowLeft className="h-4 w-4 text-slate-600" />
+                  <span>Back to Trains</span>
+                </button>
+                <div className="truncate">
+                  <span className="text-[10px] uppercase font-bold text-violet-700 block">
+                    ROUTE & TIMETABLE
+                  </span>
+                  <h4 className="text-sm sm:text-base font-bold text-slate-900 truncate">
+                    {selectedTrainForRoute.trainName} (#{selectedTrainForRoute.trainNumber})
+                  </h4>
+                </div>
               </div>
               <button
                 onClick={() => setSelectedTrainForRoute(null)}
-                className="text-slate-400 hover:text-white font-bold"
+                aria-label="Close"
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors shrink-0"
               >
-                ✕
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="p-6 max-h-[60vh] overflow-y-auto space-y-4">
+            {/* SCROLLABLE HALTS LIST */}
+            <div className="p-4 sm:p-6 overflow-y-auto flex-1 overscroll-contain space-y-4">
               <div className="divide-y divide-slate-100 text-xs">
                 {selectedTrainForRoute.halts.map((h, idx) => (
                   <div key={h.stationCode} className="py-2.5 flex items-center justify-between">
@@ -296,13 +329,22 @@ function TrainSearchContent() {
               </div>
             </div>
 
-            <div className="p-4 bg-slate-50 border-t border-slate-100 text-right">
+            {/* ACTION FOOTER */}
+            <div className="p-3 sm:p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between shrink-0">
               <button
                 type="button"
                 onClick={() => setSelectedTrainForRoute(null)}
-                className="px-5 py-2 rounded-xl bg-slate-200 text-slate-800 font-bold text-xs hover:bg-slate-300"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs transition-colors"
               >
-                Close
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back to Trains</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedTrainForRoute(null)}
+                className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs shadow-sm transition-all"
+              >
+                Done
               </button>
             </div>
           </div>

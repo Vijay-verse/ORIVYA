@@ -73,54 +73,55 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* ========================================================================= */}
-      {/* 1. HERO SECTION (EDITORIAL LUXURY GROUND NETWORK)                          */}
+      {/* 1. HERO SECTION (PREMIUM LIGHT GROUND NETWORK)                            */}
       {/* ========================================================================= */}
-      <section className="relative overflow-hidden bg-[#070A11] text-white pt-16 pb-24 lg:pt-24 lg:pb-32">
-        {/* Subtle radial ambient illumination */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-gradient-to-b from-indigo-600/20 via-violet-600/10 to-transparent rounded-full blur-3xl pointer-events-none -z-10" />
-        <div className="absolute -top-40 right-10 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none -z-10" />
+      <section className="relative overflow-hidden bg-gradient-to-b from-indigo-50/70 via-white to-slate-50/80 text-slate-900 pt-14 pb-20 lg:pt-20 lg:pb-28">
+        {/* Soft subtle ambient gradients */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1100px] h-[550px] bg-gradient-to-b from-indigo-200/40 via-violet-100/30 to-transparent rounded-full blur-3xl pointer-events-none -z-10" />
+        <div className="absolute -top-32 right-10 w-96 h-96 bg-amber-200/30 rounded-full blur-3xl pointer-events-none -z-10" />
+        <div className="absolute top-20 left-10 w-80 h-80 bg-emerald-100/30 rounded-full blur-3xl pointer-events-none -z-10" />
 
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Eyebrow badge */}
-          <div className="flex flex-col items-center text-center space-y-5 max-w-3xl mx-auto mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs font-semibold text-indigo-300 shadow-sm">
-              <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
-              <span className="uppercase tracking-wider font-bold text-[11px] text-white">Dedicated Ground & Hospitality Network</span>
-              <span className="text-white/40">•</span>
-              <span className="text-slate-300">Zero Flights Needed</span>
+          <div className="flex flex-col items-center text-center space-y-4 max-w-3xl mx-auto mb-10">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 border border-indigo-200/80 text-xs font-semibold text-indigo-700 shadow-xs">
+              <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
+              <span className="uppercase tracking-wider font-bold text-[11px] text-indigo-900">Dedicated Ground & Hospitality Network</span>
+              <span className="text-indigo-300">•</span>
+              <span className="text-slate-600 font-medium">Zero Flights Needed</span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.08]">
+            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight text-slate-900 leading-[1.08]">
               One Master Journey. <br />
-              <span className="bg-gradient-to-r from-indigo-300 via-white to-amber-200 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-indigo-600 via-violet-600 to-amber-600 bg-clip-text text-transparent">
                 Every Ground Booking.
               </span>
             </h1>
 
-            <p className="text-base sm:text-lg text-slate-300 max-w-2xl font-normal leading-relaxed">
+            <p className="text-base sm:text-lg text-slate-600 max-w-2xl font-normal leading-relaxed">
               Intercity sleeper buses, high-speed rail corridors, verified hotel sanctuaries, and pre-assigned station cabs — synchronized into a single, seamless digital pass.
             </p>
 
             {/* Micro Trust Indicators */}
-            <div className="flex flex-wrap items-center justify-center gap-4 pt-1 text-xs text-slate-400">
+            <div className="flex flex-wrap items-center justify-center gap-4 pt-1 text-xs text-slate-500 font-medium">
               <span className="flex items-center gap-1.5">
-                <ShieldCheck className="h-4 w-4 text-emerald-400" />
+                <ShieldCheck className="h-4 w-4 text-emerald-600" />
                 Razorpay Verified UPI & Cards
               </span>
-              <span className="text-slate-700">•</span>
+              <span className="text-slate-300">•</span>
               <span className="flex items-center gap-1.5">
-                <Clock className="h-4 w-4 text-amber-400" />
+                <Clock className="h-4 w-4 text-amber-600" />
                 5-Min Concurrency Seat Lock
               </span>
-              <span className="text-slate-700">•</span>
+              <span className="text-slate-300">•</span>
               <span className="flex items-center gap-1.5">
-                <QrCode className="h-4 w-4 text-indigo-400" />
+                <QrCode className="h-4 w-4 text-indigo-600" />
                 Single Cryptographic QR Pass
               </span>
             </div>
           </div>
 
-          {/* Centered Luxury Search Switcher Deck */}
+          {/* Centered Search Switcher Deck */}
           <div className="relative z-20">
             <SearchSwitcher />
           </div>
@@ -130,24 +131,24 @@ export default function HomePage() {
       {/* ========================================================================= */}
       {/* 2. LIVE SYSTEM TELEMETRY TICKER BAR                                        */}
       {/* ========================================================================= */}
-      <section className="bg-[#0B0F19] text-white border-y border-slate-800 py-3.5">
+      <section className="bg-white text-slate-700 border-y border-slate-200/90 py-3 shadow-xs">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-wrap items-center justify-between gap-4 text-xs font-mono">
             <div className="flex items-center gap-3">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-slate-400">SUPABASE CLOUD POSTGRESQL:</span>
-              <span className="text-emerald-400 font-bold">ONLINE (LATENCY: ~450ms)</span>
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-slate-500 font-medium">SUPABASE CLOUD POSTGRESQL:</span>
+              <span className="text-emerald-700 font-bold">ONLINE (LATENCY: ~450ms)</span>
             </div>
 
-            <div className="flex items-center gap-6 text-slate-400">
+            <div className="flex items-center gap-6 text-slate-500">
               <span className="hidden sm:inline">
-                ACTIVE CORRIDORS: <strong className="text-white">18 ROUTES</strong>
+                ACTIVE CORRIDORS: <strong className="text-slate-900 font-bold">18 ROUTES</strong>
               </span>
               <span>
-                SEAT LOCK ENGINE: <strong className="text-amber-400">ATOMIC TTL (300s)</strong>
+                SEAT LOCK ENGINE: <strong className="text-amber-700 font-bold">ATOMIC TTL (300s)</strong>
               </span>
               <span className="hidden md:inline">
-                PAYMENT GATEWAY: <strong className="text-indigo-400">RAZORPAY LIVE READY</strong>
+                PAYMENT GATEWAY: <strong className="text-indigo-700 font-bold">RAZORPAY LIVE READY</strong>
               </span>
             </div>
           </div>
@@ -192,71 +193,71 @@ export default function HomePage() {
 
             {/* Interactive Timeline Visual */}
             <div className="lg:col-span-7">
-              <div className="rounded-3xl bg-[#0B0F19] p-6 sm:p-8 text-white border border-slate-800 shadow-2xl shadow-indigo-950/20 relative overflow-hidden">
-                <div className="flex items-center justify-between pb-6 border-b border-slate-800">
+              <div className="rounded-3xl bg-white p-6 sm:p-8 text-slate-900 border border-slate-200/90 shadow-xl shadow-slate-200/50 relative overflow-hidden">
+                <div className="flex items-center justify-between pb-6 border-b border-slate-100">
                   <div>
-                    <span className="text-[10px] uppercase font-bold tracking-wider text-indigo-400">
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-indigo-600">
                       Live Trip Simulation
                     </span>
-                    <h3 className="text-lg font-bold text-white">Pune ➔ Goa Coastal Vacation</h3>
+                    <h3 className="text-lg font-bold text-slate-900">Pune ➔ Goa Coastal Vacation</h3>
                   </div>
-                  <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs font-mono font-bold">
+                  <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-mono font-bold">
                     CONFIRMED PASS ✓
                   </span>
                 </div>
 
                 <div className="space-y-4 pt-6">
                   {/* Leg 1: Bus */}
-                  <div className="flex items-start gap-4 p-4 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-indigo-500/50 transition-colors">
-                    <div className="h-10 w-10 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-500/30">
+                  <div className="flex items-start gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200/80 hover:border-indigo-300 hover:bg-indigo-50/20 transition-all">
+                    <div className="h-10 w-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 border border-indigo-200">
                       <Bus className="h-5 w-5" />
                     </div>
                     <div className="flex-1 text-xs">
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-white text-sm">VRL Travels Multi-Axle Sleeper</span>
-                        <span className="text-indigo-400 font-mono font-bold">Seats: L2A, L2B</span>
+                        <span className="font-bold text-slate-900 text-sm">VRL Travels Multi-Axle Sleeper</span>
+                        <span className="text-indigo-700 font-mono font-bold">Seats: L2A, L2B</span>
                       </div>
-                      <p className="text-slate-400 mt-1">21:30 Swargate, Pune ➔ 07:30 Mapusa, Goa (Lower Deck Berth)</p>
+                      <p className="text-slate-500 mt-1">21:30 Swargate, Pune ➔ 07:30 Mapusa, Goa (Lower Deck Berth)</p>
                     </div>
                   </div>
 
                   {/* Leg 2: Cab */}
-                  <div className="flex items-start gap-4 p-4 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-amber-500/50 transition-colors">
-                    <div className="h-10 w-10 rounded-xl bg-amber-600/20 text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/30">
+                  <div className="flex items-start gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200/80 hover:border-amber-300 hover:bg-amber-50/20 transition-all">
+                    <div className="h-10 w-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 border border-amber-200">
                       <Car className="h-5 w-5" />
                     </div>
                     <div className="flex-1 text-xs">
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-white text-sm">Dedicated Station Transfer</span>
-                        <span className="text-amber-400 font-mono font-bold">Sedan Prime</span>
+                        <span className="font-bold text-slate-900 text-sm">Dedicated Station Transfer</span>
+                        <span className="text-amber-700 font-mono font-bold">Sedan Prime</span>
                       </div>
-                      <p className="text-slate-400 mt-1">07:45 Mapusa Bus Stand ➔ SeaView Resort, Calangute (Driver Assigned)</p>
+                      <p className="text-slate-500 mt-1">07:45 Mapusa Bus Stand ➔ SeaView Resort, Calangute (Driver Assigned)</p>
                     </div>
                   </div>
 
                   {/* Leg 3: Hotel */}
-                  <div className="flex items-start gap-4 p-4 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-violet-500/50 transition-colors">
-                    <div className="h-10 w-10 rounded-xl bg-violet-600/20 text-violet-400 flex items-center justify-center shrink-0 border border-violet-500/30">
+                  <div className="flex items-start gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200/80 hover:border-violet-300 hover:bg-violet-50/20 transition-all">
+                    <div className="h-10 w-10 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center shrink-0 border border-violet-200">
                       <Hotel className="h-5 w-5" />
                     </div>
                     <div className="flex-1 text-xs">
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-white text-sm">SeaView Beachfront Resort</span>
-                        <span className="text-violet-400 font-mono font-bold">3 Nights</span>
+                        <span className="font-bold text-slate-900 text-sm">SeaView Beachfront Resort</span>
+                        <span className="text-violet-700 font-mono font-bold">3 Nights</span>
                       </div>
-                      <p className="text-slate-400 mt-1">Deluxe Sea Facing Balcony Room • Early Check-In Synchronized</p>
+                      <p className="text-slate-500 mt-1">Deluxe Sea Facing Balcony Room • Early Check-In Synchronized</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-6 pt-5 border-t border-slate-800 flex items-center justify-between">
+                <div className="mt-6 pt-5 border-t border-slate-100 flex items-center justify-between">
                   <div className="text-xs">
-                    <span className="text-slate-400 block text-[10px]">TOTAL MULTI-MODAL COST</span>
-                    <span className="text-lg font-extrabold text-white">₹7,899 <span className="text-xs text-slate-400 font-normal">all taxes included</span></span>
+                    <span className="text-slate-500 block text-[10px]">TOTAL MULTI-MODAL COST</span>
+                    <span className="text-lg font-extrabold text-slate-900">₹7,899 <span className="text-xs text-slate-500 font-normal">all taxes included</span></span>
                   </div>
                   <Link
                     href="/trips/trip-goa-vacation-2026"
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 transition-all"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/25 transition-all"
                   >
                     <span>Inspect Sample Itinerary</span>
                     <ArrowRight className="h-3.5 w-3.5" />
@@ -450,7 +451,7 @@ export default function HomePage() {
                       className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
                     />
                     <div className="absolute top-3 left-3">
-                      <span className="px-3 py-1 rounded-full bg-slate-950/70 backdrop-blur-md text-white text-[11px] font-bold">
+                      <span className="px-3 py-1 rounded-full bg-white/90 backdrop-blur-md text-slate-900 border border-slate-200/60 shadow-xs text-[11px] font-bold">
                         {c.tag}
                       </span>
                     </div>
@@ -493,9 +494,9 @@ export default function HomePage() {
       {/* ========================================================================= */}
       {/* 6. CALL TO ACTION FOOTER BANNER                                           */}
       {/* ========================================================================= */}
-      <section className="py-20 bg-gradient-to-br from-[#0B0F19] via-indigo-950 to-slate-950 text-white text-center">
+      <section className="py-20 bg-gradient-to-r from-indigo-600 via-indigo-700 to-violet-700 text-white text-center">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 space-y-6">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 text-indigo-300 text-xs font-bold">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/15 backdrop-blur-md text-white text-xs font-bold border border-white/20">
             <Compass className="h-4 w-4" />
             <span>Ready for your next ground adventure?</span>
           </div>
@@ -505,20 +506,20 @@ export default function HomePage() {
             Plan your complete trip in minutes.
           </h2>
 
-          <p className="text-slate-300 text-sm sm:text-base max-w-xl mx-auto">
+          <p className="text-indigo-100 text-sm sm:text-base max-w-xl mx-auto font-normal">
             Book buses, trains, hotels, and cabs under one unified order with real-time seat locks and verified Razorpay checkouts.
           </p>
 
           <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
               href="/bus"
-              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white text-slate-900 hover:bg-slate-100 font-extrabold text-xs shadow-xl transition-all"
+              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white text-indigo-700 hover:bg-slate-50 font-extrabold text-xs shadow-xl transition-all"
             >
               BOOK BUS SEATS NOW
             </Link>
             <Link
               href="/trips"
-              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold text-xs transition-colors"
+              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-indigo-800/60 hover:bg-indigo-800 text-white border border-indigo-400/40 font-bold text-xs transition-colors"
             >
               EXPLORE UNIFIED ITINERARIES
             </Link>

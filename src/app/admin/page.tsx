@@ -28,7 +28,8 @@ import {
   AlertCircle,
   Eye,
   SlidersHorizontal,
-  Database
+  Database,
+  ArrowLeft
 } from "lucide-react";
 import { useTravelStore } from "@/lib/store";
 import { useAuth } from "@/lib/auth/AuthContext";
@@ -843,22 +844,42 @@ export default function AdminDashboardPage() {
 
       {/* ================= BOOKING INSPECT & ACTIONS MODAL ================= */}
       {selectedBookingForDetails && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto">
-          <div className="relative w-full max-w-xl my-8 rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden space-y-6">
-            <div className="bg-[#0B0F19] text-white p-5 flex items-center justify-between">
-              <div>
-                <span className="text-[10px] uppercase font-bold text-indigo-400">Booking Management</span>
-                <h3 className="text-lg font-bold">{selectedBookingForDetails.referenceNumber}</h3>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/35 backdrop-blur-xs"
+          onClick={() => setSelectedBookingForDetails(null)}
+        >
+          <div
+            className="relative w-full max-w-xl max-h-[92vh] flex flex-col rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* STICKY HEADER */}
+            <div className="sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-slate-200 bg-white/95 backdrop-blur-md shrink-0">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSelectedBookingForDetails(null)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs transition-colors shrink-0"
+                  title="Return to bookings table"
+                >
+                  <ArrowLeft className="h-4 w-4 text-slate-600" />
+                  <span>Back to Hub</span>
+                </button>
+                <div className="truncate">
+                  <span className="text-[10px] uppercase font-bold text-indigo-700 block">Booking Management</span>
+                  <h3 className="text-sm sm:text-base font-bold text-slate-900 truncate">{selectedBookingForDetails.referenceNumber}</h3>
+                </div>
               </div>
               <button
                 onClick={() => setSelectedBookingForDetails(null)}
-                className="text-slate-400 hover:text-white font-bold"
+                aria-label="Close"
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors shrink-0"
               >
-                ✕
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="p-6 space-y-6 text-xs">
+            {/* SCROLLABLE BODY */}
+            <div className="p-4 sm:p-6 space-y-6 text-xs overflow-y-auto flex-1 overscroll-contain">
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 grid grid-cols-2 gap-3">
                 <div>
                   <span className="text-slate-400 block text-[10px]">BOOKING TYPE</span>
@@ -887,27 +908,28 @@ export default function AdminDashboardPage() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-3">
+              <div className="flex flex-col-reverse sm:flex-row items-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedBookingForDetails(null)}
+                  className="w-full sm:w-auto py-3 px-5 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  <span>Back to Hub</span>
+                </button>
                 {selectedBookingForDetails.status === "CONFIRMED" ? (
                   <button
                     type="button"
                     onClick={() => handleAdminCancelBooking(selectedBookingForDetails.id)}
-                    className="flex-1 py-3 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs text-center transition-colors shadow-md shadow-rose-600/20"
+                    className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs text-center transition-colors shadow-md shadow-rose-600/20"
                   >
                     Cancel Booking & Issue Refund
                   </button>
                 ) : (
-                  <div className="flex-1 py-3 px-4 rounded-xl bg-slate-100 text-slate-500 font-bold text-xs text-center">
+                  <div className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-slate-100 text-slate-500 font-bold text-xs text-center">
                     Booking is already {selectedBookingForDetails.status}
                   </div>
                 )}
-                <button
-                  type="button"
-                  onClick={() => setSelectedBookingForDetails(null)}
-                  className="px-5 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs"
-                >
-                  Close
-                </button>
               </div>
             </div>
           </div>

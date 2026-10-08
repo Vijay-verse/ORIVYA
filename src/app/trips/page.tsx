@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
   Briefcase, 
@@ -14,7 +14,9 @@ import {
   ArrowRight, 
   CheckCircle2, 
   Clock, 
-  Sparkles 
+  Sparkles,
+  ArrowLeft,
+  X
 } from "lucide-react";
 import { useTravelStore } from "@/lib/store";
 import { formatCurrency } from "@/lib/utils";
@@ -26,6 +28,14 @@ export default function TripsPage() {
   const [destination, setDestination] = useState("");
   const [startDate, setStartDate] = useState("2026-10-02");
   const [endDate, setEndDate] = useState("2026-10-05");
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowCreateModal(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -168,22 +178,41 @@ export default function TripsPage() {
 
       {/* CREATE NEW TRIP MODAL */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-5 animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <Briefcase className="h-5 w-5 text-indigo-600" />
-                Create New Master Trip
-              </h3>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/35 backdrop-blur-xs"
+          onClick={() => setShowCreateModal(false)}
+        >
+          <div
+            className="relative w-full max-w-md max-h-[92vh] flex flex-col rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* STICKY HEADER */}
+            <div className="sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-slate-200 bg-white/95 backdrop-blur-md shrink-0">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs transition-colors shrink-0"
+                  title="Return to trips list"
+                >
+                  <ArrowLeft className="h-4 w-4 text-slate-600" />
+                  <span>Back to Trips</span>
+                </button>
+                <h3 className="text-sm sm:text-base font-bold text-slate-900 truncate">
+                  Create Master Trip
+                </h3>
+              </div>
               <button
                 onClick={() => setShowCreateModal(false)}
-                className="text-slate-400 hover:text-slate-700 text-sm font-bold"
+                aria-label="Close"
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors shrink-0"
               >
-                ✕
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            <form onSubmit={handleCreate} className="space-y-4 text-xs">
+            {/* FORM BODY */}
+            <form onSubmit={handleCreate} className="p-4 sm:p-6 space-y-4 text-xs overflow-y-auto flex-1 overscroll-contain">
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Trip Name</label>
                 <input
@@ -231,12 +260,22 @@ export default function TripsPage() {
                 </div>
               </div>
 
-              <button
-                type="submit"
-                className="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 transition-all"
-              >
-                CREATE TRIP & START PLANNING
-              </button>
+              <div className="flex flex-col-reverse sm:flex-row items-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="w-full sm:w-auto py-3 px-4 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  <span>Cancel</span>
+                </button>
+                <button
+                  type="submit"
+                  className="w-full sm:flex-1 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 transition-all text-center"
+                >
+                  CREATE TRIP & START PLANNING
+                </button>
+              </div>
             </form>
           </div>
         </div>
