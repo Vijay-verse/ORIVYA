@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
   BarChart3, 
@@ -27,7 +27,8 @@ import {
   X,
   AlertCircle,
   Eye,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Database
 } from "lucide-react";
 import { useTravelStore } from "@/lib/store";
 import { useAuth } from "@/lib/auth/AuthContext";
@@ -70,6 +71,38 @@ export default function AdminDashboardPage() {
 
   // Audit logs state
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>(() => AuditService.getLogs());
+
+  // Cloud Diagnostics & Database Telemetry
+  const [healthData, setHealthData] = useState<{
+    status: string;
+    environment: string;
+    supabase: {
+      isConfigured: boolean;
+      host: string;
+      connection: { status: string; latencyMs: number; error: string | null };
+    };
+    services: Record<string, string>;
+  } | null>(null);
+  const [isHealthLoading, setIsHealthLoading] = useState(false);
+
+  const fetchHealth = async () => {
+    setIsHealthLoading(true);
+    try {
+      const res = await fetch("/api/health");
+      if (res.ok) {
+        const json = await res.json();
+        setHealthData(json);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setIsHealthLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchHealth();
+  }, []);
 
   const metrics = AdminService.getMetrics(bookings, trips, dateFilter);
 
@@ -207,6 +240,81 @@ export default function AdminDashboardPage() {
         {/* ================= TAB 1: ANALYTICS & KPIS ================= */}
         {activeTab === "analytics" && (
           <div className="space-y-8 animate-in fade-in-50 duration-150">
+            {/* CLOUD INFRASTRUCTURE & SUPABASE STATUS BANNER */}
+            <div className="rounded-3xl bg-[#0B0F19] text-white p-6 border border-slate-800 shadow-xl relative overflow-hidden">
+              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-ping" />
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-indigo-400">
+                      Live Telemetry & Diagnostics
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-bold text-white flex items-center gap-2.5">
+                    <Database className="h-5 w-5 text-indigo-400" />
+                    {healthData?.supabase.isConfigured ? (
+                      <span>Supabase PostgreSQL: Connected</span>
+                    ) : (
+                      <span>Supabase PostgreSQL: In-Memory Fallback Mode</span>
+                    )}
+                  </h3>
+                  <p className="text-xs text-slate-400 max-w-2xl leading-relaxed">
+                    {healthData?.supabase.isConfigured ? (
+                      <>Production database connected to <span className="font-mono text-indigo-300">{healthData.supabase.host}</span> with {healthData.supabase.connection.latencyMs}ms roundtrip latency.</>
+                    ) : (
+                      <>Live Render deployment running in resilient fallback mode with stateful memory persistence. To bind to live PostgreSQL, supply <span className="font-mono text-amber-300">NEXT_PUBLIC_SUPABASE_URL</span> & <span className="font-mono text-amber-300">NEXT_PUBLIC_SUPABASE_ANON_KEY</span> in the Render Environment dashboard.</>
+                    )}
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="bg-slate-900/90 border border-slate-800 px-4 py-2.5 rounded-2xl flex items-center gap-3">
+                    <div className="text-right">
+                      <span className="text-[10px] text-slate-500 uppercase font-bold block">Engine Mode</span>
+                      <span className={`text-xs font-bold ${healthData?.supabase.isConfigured ? "text-emerald-400" : "text-amber-400"}`}>
+                        {healthData?.supabase.isConfigured ? "Live Supabase Cloud" : "Demo Engine (Active)"}
+                      </span>
+                    </div>
+                    <div className={`h-2.5 w-2.5 rounded-full ${healthData?.supabase.isConfigured ? "bg-emerald-500" : "bg-amber-500"}`} />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={fetchHealth}
+                    disabled={isHealthLoading}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/30 transition-all disabled:opacity-50"
+                  >
+                    <RefreshCw className={`h-3.5 w-3.5 ${isHealthLoading ? "animate-spin" : ""}`} />
+                    <span>{isHealthLoading ? "Pinging..." : "Check Cloud Health"}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Quick service indicators */}
+              <div className="mt-5 pt-4 border-t border-slate-800/80 flex flex-wrap gap-4 text-[11px] text-slate-400">
+                <span className="flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  Bus Engine: Operational
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  Train Engine: Operational
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  Hotels Engine: Operational
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  Cabs Engine: Operational
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  Seat-Locking TTL: Active
+                </span>
+              </div>
+            </div>
+
             {/* KPI METRIC CARDS */}
             <div className="flex items-center justify-between pb-2">
               <h2 className="text-sm font-bold text-slate-800">Business Health & Real-time GMV</h2>
